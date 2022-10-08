@@ -5,8 +5,6 @@
 
 # politician2vec
 
-## Introduction
-
 Welcome to the `politician2vec` package. This package allows for distilling massive, unstructured text corpora into political insights. Specifically, utilities are provided for learning, manipulating, and visualising domain-specific "distributed-representation" language models with words, documents, and politicians embedded in the same high-dimensional semantic space.
 
 Functionality relies heavily on the `gensim` implementation of Tomáš Mikolov and colleagues' `doc2vec` and owes much of its core functionality to Dimo Angelov's `top2vec` for unsupervised infererence of topics in semantic spaces. Interactive 2D/3D projections are made possible by exporting vectors and relevant metadata as separate 2D tensors to TensorBoard-compatible .TSV format.
