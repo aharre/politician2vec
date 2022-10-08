@@ -1,16 +1,17 @@
+![](https://img.shields.io/badge/version-0.0.1-yellow.svg)
+
+**Notes:**
+- Package under construction!
+
 # politician2vec
 
-*NOTE: Package under construction...*
-
-![](https://img.shields.io/badge/version-0.1.0-yellow.svg)
-
-# Introduction
+## Introduction
 
 Welcome to the `politician2vec` package. This package allows for distilling massive, unstructured text corpora into political insights. Specifically, utilities are provided for learning, manipulating, and visualising domain-specific "distributed-representation" language models with words, documents, and politicians embedded in the same high-dimensional semantic space.
 
 Functionality relies heavily on the `gensim` implementation of Tomáš Mikolov and colleagues' `doc2vec` and owes much of its core functionality to Dimo Angelov's `top2vec` for unsupervised infererence of topics in semantic spaces. Interactive 2D/3D projections are made possible by exporting vectors and relevant metadata as separate 2D tensors to TensorBoard-compatible .TSV format.
 
-# Package structure
+## Package structure
 
 ```
 politician2vec
@@ -40,7 +41,7 @@ politician2vec
 │       │   xxx.py
 ```
 
-# Requirements
+## Requirements
 
 The current version of politician2vec was developed in Python 3.7.12. Analysis is performed in Jupyter, and demos will be provided as notebooks. For installing Jupyter/JupyterLab, visit [Project Jupyter](https://jupyter.org/). Currently known Python dependencies:
 
@@ -52,29 +53,29 @@ The current version of politician2vec was developed in Python 3.7.12. Analysis i
 
 Apart from these Python dependencies, `git` is required for Bitbucket integration/version control, and `pip` is required for installation/package management.
 
-# Installation
+## Installation
 
 Install politician2vec via command line:
 
 `$ python -m pip install 'politician2vec @ git+https://github.com/mathiasbruun/politician2vec.git'`
 
-# Example import
+## Example import
 
 ```python
 from politician2vec import Politician2Vec
 ```
 
-# Demos
+## Demos
 
 Notebooks demonstrating common usecases and workflows to be added in `bin/notebooks/`.
 
 Click <a href="https://projector.tensorflow.org/?config=https://bitbucket.org/advice-data-and-insights/tensorboard_input/raw/3a8dfc3fc19ef83d03832e89b207413ad918a1a3/projector_config.json" target="_blank">here</a> for TensorBoard visualisation example (works best in Google Chrome). When the embedding has loaded, check 'State 0' to load a pre-computed t-SNE projection—or switch to UMAP for a clearer distinction between politicians.
 
-# Support
+## Support
 
 Please report any errors or suggestions to Mathias Bruun at [pvf607@alumni.ku.dk](mailto:pvf607@alumni.ku.dk).
 
-# Foundational literature
+## Foundational literature
 
 - Angelov, D. (2020). *Top2Vec: Distributed Representations of Topics*. arXiv: [2008.09470](https://arxiv.org/abs/2008.09470).
 - Bruun, M., A. Weile, A. Saabye & T. Blažková (n.d.). *'Splits' over splitting atoms in the EU*. Working paper.
