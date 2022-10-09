@@ -32,8 +32,8 @@ politician2vec
 └───tests
 │   │   politician2vec_test.ipynb   # Contains unit tests for politician2vec functions
 │
-└───politician2vec                  # Contains Top2Vec source code and RadarTool functionality
-│   │   politician2vec.py
+└───politician2vec                  # Contains politican2vec functionality
+│   │   Politician2Vec.py
 │   │
 │   └───utils
 │       │   xxx.py
