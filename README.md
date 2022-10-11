@@ -55,7 +55,7 @@ Apart from these Python dependencies, `git` is required for Bitbucket integratio
 
 Install politician2vec via command line:
 
-`$ python -m pip install 'politician2vec @ git+https://github.com/mathiasbruun/politician2vec.git'`
+`$ pip install git+ssh://git@github.com/mathiasbruun/politician2vec.git`
 
 ## Example import
 
