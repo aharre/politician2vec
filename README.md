@@ -23,7 +23,7 @@ politician2vec
 └───bin
 │   │   demo_notebook.ipynb
 │   │
-│   └───tensorboard                 # Contains example of TensorBoard visualisation of embedding projection
+│   └───tensorboard                 # Contains example of TensorBoard visualisation
 │       │   tb_config.json
 │       │   tb_doc_tensor.tsv
 │       │   tb_metadata_tensor.tsv
