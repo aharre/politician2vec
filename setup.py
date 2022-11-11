@@ -5,7 +5,7 @@ setup(
     version='0.0.1',
     author='Mathias Bruun',
     author_email='pvf607@alumni.ku.dk',
-    packages=['politician2vec', 'politician2vec.utils'],
+    packages=['politician2vec'],
     scripts=[],
     url='https://github.com/mathiasbruun/politician2vec',
     license='docs/LICENSE.txt',
