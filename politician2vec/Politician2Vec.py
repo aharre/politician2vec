@@ -368,6 +368,7 @@ class Politician2Vec:
 
     def __init__(self,
                  documents,
+                 custom_clusters,
                  min_count=50,
                  ngram_vocab=False,
                  ngram_vocab_args=None,
@@ -666,37 +667,38 @@ class Politician2Vec:
             raise ValueError(f"{embedding_model} is an invalid embedding model.")
 
         # create 5D embeddings of documents
-        logger.info('Creating lower dimension embedding of documents')
+        # logger.info('Creating lower dimension embedding of documents')
+        logger.info('NOT creating lower dimension embedding of documents!!!')
 
-        if umap_args is None:
-            umap_args = {'n_neighbors': 15,
-                         'n_components': 5,
-                         'metric': 'cosine'}
+        # if umap_args is None:
+        #     umap_args = {'n_neighbors': 15,
+        #                  'n_components': 5,
+        #                  'metric': 'cosine'}
 
-        umap_model = umap.UMAP(**umap_args).fit(self.document_vectors)
+        # umap_model = umap.UMAP(**umap_args).fit(self.document_vectors)
 
         # find dense areas of document vectors
-        logger.info('Finding dense areas of documents')
+        # logger.info('Finding dense areas of documents')
 
-        if hdbscan_args is None:
-            hdbscan_args = {'min_cluster_size': hdbscan_min_cluster_size,
-                            'metric': 'euclidean',
-                            'cluster_selection_method': 'eom'}
+        # if hdbscan_args is None:
+        #     hdbscan_args = {'min_cluster_size': hdbscan_min_cluster_size,
+        #                     'metric': 'euclidean',
+        #                     'cluster_selection_method': 'eom'}
 
-        cluster = hdbscan.HDBSCAN(**hdbscan_args).fit(umap_model.embedding_)
+        #cluster = hdbscan.HDBSCAN(**hdbscan_args).fit(umap_model.embedding_)
 
         # save the UMAP and HDBSCAN model
-        self.umap_model = umap_model	
-        self.cluster = cluster
+        #self.umap_model = umap_model	
+        #self.cluster = cluster
 
         # calculate topic vectors from dense areas of documents
         logger.info('Finding topics')
 
         # create topic vectors
-        self._create_topic_vectors(cluster.labels_)
+        self._create_topic_vectors(custom_clusters) # cluster.labels_
 
         # deduplicate topics
-        self._deduplicate_topics()
+        #self._deduplicate_topics()
 
         # find topic words and scores
         self.topic_words, self.topic_word_scores = self._find_topic_words_and_scores(topic_vectors=self.topic_vectors)
