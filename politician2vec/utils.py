@@ -76,32 +76,32 @@ def preproc_docs(text):
 # - More extensive error handling.
 # – Rewrtie to topics_to_keep
 # - Write logging funcitonality for entire package...
-# - Move to top2vec package!
+# - Move to politician2vec package!
 
 #print('Thank you for using the custom Radar Tool and its utilities! Report issues to mathias.b@adviceagency.com')
 
-def load_top2vec_from_txt(model_path: 'str') -> 'top2vecmodel, doc2vec_model':
+def load_politician2vec_from_txt(model_path: 'str') -> 'politician2vecmodel, doc2vec_model':
     '''
-    Loads a Top2Vec embedding model from .txt file.
+    Loads a Politician2Vec embedding model from .txt file.
     
-    Returns both the Top2Vec model and the Doc2Vec
+    Returns both the Politician2Vec model and the Doc2Vec
     model which makes up a subset thereof.
     
     -----
-    model_path (str): filepath to the Top2Vec file
+    model_path (str): filepath to the Politician2Vec file
     '''
     
-    # Load entire Top2Vec model
-    print('Loading Top2Vec model...')
-    top2vec_model = Politician2Vec.load(model_path)
+    # Load entire Politician2Vec model
+    print('Loading Politician2Vec model...')
+    politician2vec_model = Politician2Vec.load(model_path)
     
     # Retrieve the Doc2Vec embedding
     print('Retrieving document embedding...')
-    doc2vec_model = top2vec_model.model
+    doc2vec_model = politician2vec_model.model
     
     print('All done!')
 
-    return top2vec_model, doc2vec_model
+    return politician2vec_model, doc2vec_model
 
 def doc2vec2tensor(
     doc2vec_model,
@@ -119,7 +119,7 @@ def doc2vec2tensor(
     
     -----
     doc2vec_model: document embedding returned by
-        load_top2vec_from_txt()
+        load_politician2vec_from_txt()
     
     temp_w2v_path (str): filename to use for temporary
         word2vec-formatted embedding file
@@ -159,13 +159,13 @@ def doc2vec2tensor(
     # Export tensor version to two separate files using gensim
     os.system(f'python -m gensim.scripts.word2vec2tensor -i {temp_w2v_path} -o {tsv_prefix}')
     
-def get_topics_convert_other(top2vec_model, no_substantive_topics):
+def get_topics_convert_other(politician2vec_model, no_substantive_topics):
     '''
     A list of topics with smaller topics above a certain
     threshold are lumped together as 'Other'.
     
     -----
-    top2vec_model: Top2Vec model in question
+    politician2vec_model: Politician2Vec model in question
     
     no_substantive_topics (int): number of topics that
         are actually of interest -- topics above this
@@ -177,7 +177,7 @@ def get_topics_convert_other(top2vec_model, no_substantive_topics):
     
     # Get list of topics with topics of index higher than
     # max_top_idx lumped into one group of max_top_idx + 1
-    topics_list = np.where(top2vec_model.doc_top > max_top_idx, max_top_idx+1, top2vec_model.doc_top)
+    topics_list = np.where(politician2vec_model.doc_top > max_top_idx, max_top_idx+1, politician2vec_model.doc_top)
     
     unique, counts = np.unique(topics_list, return_counts=True)
     
@@ -186,16 +186,16 @@ def get_topics_convert_other(top2vec_model, no_substantive_topics):
     
     return(topics_list)
 
-def join_topics_to_df(top2vec_model, top_dict_to_retrieve, orig_df, to_excel_file = None):
+def join_topics_to_df(politician2vec_model, top_dict_to_retrieve, orig_df, to_excel_file = None):
     '''
     TODO...
     '''
     doc_dict = dict()
-    topic_sizes, topic_nums = top2vec_model.get_topic_sizes()
+    topic_sizes, topic_nums = politician2vec_model.get_topic_sizes()
 
     for topic in tqdm(top_dict_to_retrieve.keys(), desc = 'Retrieving topics'):
 
-        documents, document_scores, document_ids = top2vec_model.search_documents_by_topic(
+        documents, document_scores, document_ids = politician2vec_model.search_documents_by_topic(
                 topic_num=topic,
                 num_docs=topic_sizes[topic]
                 )
@@ -232,9 +232,9 @@ def join_topics_to_df(top2vec_model, top_dict_to_retrieve, orig_df, to_excel_fil
 
     return(df_out)
 
-def get_doc_topic_df(top2vec_model, no_substantive_topics = 10, snippets=False, topics_to_remove=None):
+def get_doc_topic_df(politician2vec_model, no_substantive_topics = 10, snippets=False, topics_to_remove=None):
     '''
-    Extract topic indeces and document ids from the Top2Vec
+    Extract topic indeces and document ids from the Politician2Vec
     model. Return a DataFrame of these two lists, filtered
     to exclude the "Other" topic as defined by the
     no_substantive_topics argument and executed by the
@@ -244,7 +244,7 @@ def get_doc_topic_df(top2vec_model, no_substantive_topics = 10, snippets=False, 
     specifying the "snippets" argument.
     
     -----
-    top2vec_model: Top2Vec model in question
+    politician2vec_model: Politician2Vec model in question
     
     no_substantive_topics (int): number of topics that
         are actually of interest -- topics above this
@@ -259,8 +259,8 @@ def get_doc_topic_df(top2vec_model, no_substantive_topics = 10, snippets=False, 
         not consecutive index-wise)
     '''
     
-    topics_list = get_topics_convert_other(top2vec_model, no_substantive_topics)
-    doc_ids_list = list(top2vec_model.document_ids)
+    topics_list = get_topics_convert_other(politician2vec_model, no_substantive_topics)
+    doc_ids_list = list(politician2vec_model.document_ids)
     
     topic_df = pd.DataFrame(zip(doc_ids_list, topics_list), columns = ['doc', 'top'])
     
@@ -271,7 +271,7 @@ def get_doc_topic_df(top2vec_model, no_substantive_topics = 10, snippets=False, 
     
     if snippets:
         snippets = (
-            pd.DataFrame(top2vec_model.documents)
+            pd.DataFrame(politician2vec_model.documents)
                 .reset_index()
                 .rename(columns={'index':'snippet_no', 0:'snippet'})
         )
@@ -341,7 +341,7 @@ def vector_subset2tensor_without_words(topic_df, orig_vec_path, out_path):
     topic_df (pandas DataFrame): "lookup table"-style
         DataFrame containing a the document indeces
         and topic ids for a subset of topics, based
-        on topics of interest from the top2vec model
+        on topics of interest from the politician2vec model
     
     orig_vec_path (str): original filepath of
         TensorBoard-compatible .TSV docvec file
@@ -362,7 +362,7 @@ def vector_subset2tensor_without_words(topic_df, orig_vec_path, out_path):
                 
 def restrict_w2v_to_topic(doc2vec_model, selected_topics, topic_words, terms_of_interest):
     '''
-    Takes the doc2vec component of the top2vec model,
+    Takes the doc2vec component of the politician2vec model,
     restricting the vocabulary to word vectors in the
     top 50 words within each specified topic. This allows
     for unobscured exploration of a smaller subset of
@@ -379,7 +379,7 @@ def restrict_w2v_to_topic(doc2vec_model, selected_topics, topic_words, terms_of_
     when producing input for plot_utils.plot_venn_words().
     '''
     
-    print('Please note that this function currently modifies the existing model.\nPlease use load_top2vec_from_txt() to load original model again.')
+    print('Please note that this function currently modifies the existing model.\nPlease use load_politician2vec_from_txt() to load original model again.')
     
     selected_words = []
 
