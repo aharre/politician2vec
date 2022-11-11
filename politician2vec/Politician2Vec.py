@@ -42,7 +42,7 @@ try:
 except ImportError:
     _HAVE_TORCH = False
 
-logger = logging.getLogger('top2vec')
+logger = logging.getLogger('politician2vec')
 logger.setLevel(logging.WARNING)
 sh = logging.StreamHandler()
 sh.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
@@ -668,14 +668,14 @@ class Politician2Vec:
 
         # create 5D embeddings of documents
         # logger.info('Creating lower dimension embedding of documents')
-        logger.info('NOT creating lower dimension embedding of documents!!!')
+        logger.info('ONLY creating UMAP projection, NOT HDBSCAN!!!')
 
-        # if umap_args is None:
-        #     umap_args = {'n_neighbors': 15,
-        #                  'n_components': 5,
-        #                  'metric': 'cosine'}
+        if umap_args is None:
+            umap_args = {'n_neighbors': 15,
+                         'n_components': 5,
+                         'metric': 'cosine'}
 
-        # umap_model = umap.UMAP(**umap_args).fit(self.document_vectors)
+        umap_model = umap.UMAP(**umap_args).fit(self.document_vectors)
 
         # find dense areas of document vectors
         # logger.info('Finding dense areas of documents')
@@ -688,7 +688,7 @@ class Politician2Vec:
         #cluster = hdbscan.HDBSCAN(**hdbscan_args).fit(umap_model.embedding_)
 
         # save the UMAP and HDBSCAN model
-        #self.umap_model = umap_model	
+        self.umap_model = umap_model	
         #self.cluster = cluster
 
         # calculate topic vectors from dense areas of documents
