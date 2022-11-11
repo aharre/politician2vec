@@ -5,7 +5,7 @@ import nltk
 for dependency in ['punkt', 'wordnet', 'omw-1.4', 'stopwords', 'averaged_perceptron_tagger']:
     nltk.download(dependency)
 
-def preproc_mentions(text):
+def preproc_docs(text):
     #Lowercasing words
     text = text.lower()
     
