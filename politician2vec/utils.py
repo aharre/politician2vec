@@ -1,4 +1,4 @@
-from Politician2Vec import Politician2Vec
+from .Politician2Vec import Politician2Vec
 import os
 import numpy as np
 import pandas as pd
