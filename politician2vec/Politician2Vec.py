@@ -159,7 +159,7 @@ def get_random_chunks(tokens, chunk_length, chunk_len_coverage_ratio, max_num_ch
     return [" ".join(tokens[i:i + chunk_length]) for i in starts]
 
 
-class Top2Vec:
+class Politician2Vec:
     """
     Top2Vec
 
