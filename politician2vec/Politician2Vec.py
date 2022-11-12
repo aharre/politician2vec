@@ -369,6 +369,7 @@ class Politician2Vec:
     def __init__(self,
                  documents,
                  custom_clusters,
+                 party_inference_method = 'mean',
                  min_count=50,
                  ngram_vocab=False,
                  ngram_vocab_args=None,
@@ -869,9 +870,15 @@ class Politician2Vec:
         unique_labels = set(cluster_labels)
         if -1 in unique_labels:
             unique_labels.remove(-1)
-        self.topic_vectors = self._l2_normalize(
-            np.vstack([self.document_vectors[np.where(cluster_labels == label)[0]]
-                      .mean(axis=0) for label in unique_labels]))
+
+        if party_inference_method == 'medoid':
+            self.topic_vectors = self._l2_normalize(
+                np.vstack([self.document_vectors[np.where(cluster_labels == label)[0]]
+                        .mean(axis=0) for label in unique_labels]))
+        else:
+            self.topic_vectors = self._l2_normalize(
+                np.vstack([self.document_vectors[np.where(cluster_labels == label)[0]]
+                        .mean(axis=0) for label in unique_labels]))
 
     def _deduplicate_topics(self):
         core_samples, labels = dbscan(X=self.topic_vectors,
