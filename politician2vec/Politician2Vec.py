@@ -868,7 +868,7 @@ class Politician2Vec:
 
         return self._l2_normalize(np.array(self.embed([query])[0]))
 
-    def _create_topic_vectors(self, cluster_labels):
+    def _create_topic_vectors(self, cluster_labels, party_inference_method):
         unique_labels = set(cluster_labels)
         if -1 in unique_labels:
             unique_labels.remove(-1)
