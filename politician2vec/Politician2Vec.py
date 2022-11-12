@@ -875,8 +875,8 @@ class Politician2Vec:
 
         if party_inference_method == 'medoid':
             self.topic_vectors = self._l2_normalize(
-                np.vstack([self.document_vectors[np.where(cluster_labels == label)[0]]
-                        .mean(axis=0) for label in unique_labels]))
+                np.vstack([np.median(self.document_vectors[np.where(cluster_labels == label)[0]],
+                        axis=0) for label in unique_labels]))
         else:
             self.topic_vectors = self._l2_normalize(
                 np.vstack([self.document_vectors[np.where(cluster_labels == label)[0]]
