@@ -669,7 +669,7 @@ class Politician2Vec:
 
         # create 5D embeddings of documents
         # logger.info('Creating lower dimension embedding of documents')
-        logger.info('ONLY creating UMAP projection, NOT HDBSCAN!!!')
+        logger.info('Projecting vectors to 5D space using UMAP projection (HDBSCAN clustering disabled!)')
 
         if umap_args is None:
             umap_args = {'n_neighbors': 15,
@@ -693,7 +693,7 @@ class Politician2Vec:
         #self.cluster = cluster
 
         # calculate topic vectors from dense areas of documents
-        logger.info('Finding topics')
+        logger.info(f'Estimating party positions using {party_inference_method}...')
 
         # create topic vectors
         self._create_topic_vectors(custom_clusters) # cluster.labels_
@@ -734,6 +734,8 @@ class Politician2Vec:
         self.word_index = None
         self.serialized_word_index = None
         self.words_indexed = False
+
+        logger.info('All done!')
 
     def save(self, file):
         """
