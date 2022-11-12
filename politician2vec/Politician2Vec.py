@@ -669,7 +669,7 @@ class Politician2Vec:
 
         # create 5D embeddings of documents
         # logger.info('Creating lower dimension embedding of documents')
-        logger.info('Projecting vectors to 5D space using UMAP projection (HDBSCAN clustering disabled!)')
+        logger.info('Projecting vectors to 5D space using UMAP (HDBSCAN clustering disabled!)')
 
         if umap_args is None:
             umap_args = {'n_neighbors': 15,
@@ -696,7 +696,7 @@ class Politician2Vec:
         logger.info(f'Estimating party positions using {party_inference_method}...')
 
         # create topic vectors
-        self._create_topic_vectors(custom_clusters) # cluster.labels_
+        self._create_topic_vectors(custom_clusters, party_inference_method) # cluster.labels_
 
         # deduplicate topics
         #self._deduplicate_topics()
