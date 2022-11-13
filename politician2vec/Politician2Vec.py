@@ -669,14 +669,12 @@ class Politician2Vec:
 
         # create 5D embeddings of documents
         # logger.info('Creating lower dimension embedding of documents')
-        logger.info('Projecting vectors to 5D space using UMAP (HDBSCAN clustering disabled!)')
+        # if umap_args is None:
+        #     umap_args = {'n_neighbors': 15,
+        #                  'n_components': 5,
+        #                  'metric': 'cosine'}
 
-        if umap_args is None:
-            umap_args = {'n_neighbors': 15,
-                         'n_components': 5,
-                         'metric': 'cosine'}
-
-        umap_model = umap.UMAP(**umap_args).fit(self.document_vectors)
+        # umap_model = umap.UMAP(**umap_args).fit(self.document_vectors)
 
         # find dense areas of document vectors
         # logger.info('Finding dense areas of documents')
@@ -689,7 +687,7 @@ class Politician2Vec:
         #cluster = hdbscan.HDBSCAN(**hdbscan_args).fit(umap_model.embedding_)
 
         # save the UMAP and HDBSCAN model
-        self.umap_model = umap_model	
+        # self.umap_model = umap_model	
         #self.cluster = cluster
 
         # calculate topic vectors from dense areas of documents
@@ -2755,3 +2753,48 @@ class Politician2Vec:
                       height=400,
                       background_color=background_color).generate_from_frequencies(word_score_dict))
         plt.title("Topic " + str(topic_num), loc='left', fontsize=25, pad=20)
+
+    def inspect_topic(self, topic_idx, n_docs=None, query_substr=None):
+        '''
+        Print top words and top docs for a given
+        topic.
+        -------
+        manual_num (int):  manually assigned topic number (i.e. 1-indexed).
+        
+        n_docs (int, optional): n top documents to print for a given topic.
+            Default is to print all docs within a given topic.
+        
+        query_substr (str, optional): if specified, only documents containing
+            this substring will be printed. Cannot be specified with n_docs,
+            as this would return only results within a subset of topic docs.
+        '''
+
+        num_topics = self.get_num_topics()
+        topic_words, word_scores, topic_nums = self.get_topics(num_topics)
+
+        # Get topic sizes so we know max n docs
+        topic_sizes, topic_nums = self.get_topic_sizes()
+        docs_to_return = topic_sizes[topic_idx]
+
+        # Override n docs to return, if specified
+        if n_docs:
+            docs_to_return = n_docs
+
+        # Get docs for input topic id
+        documents, document_scores, document_ids = self.search_documents_by_topic(
+            topic_num=topic_idx,
+            num_docs=docs_to_return
+            )
+
+        # Limit output to docs containign certain substring, if specified
+        if query_substr and n_docs:
+            raise Exception('Please do NOT specify n_docs with substring query!\nOtherwise the search is only carried out for a subset of topic docs.')
+        
+        # Throw exception if substring query attempted on subset of docs!
+        elif query_substr:
+            documents = [doc for doc in documents if query_substr in doc.lower()]
+
+        # Print output
+        print('--- TOP 50 WORDS ---\n', topic_words[topic_idx], '\n')
+
+        print(f'--- TOP {docs_to_return} DOCS. SUBSTRING QUERY: {query_substr} (n = {len(documents)}) ---\n', documents)
