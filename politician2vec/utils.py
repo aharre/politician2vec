@@ -28,10 +28,12 @@ def preproc_docs(text):
     #Removing punctuation
     text = text.translate(str.maketrans('', '', string.punctuation.replace('-',''))) #Taking hyphens out of punctuation to remove
     text = re.sub(r' - ','', text) #removing dash lines bounded by whitespace (and therefore not part of a word)
+    text = re.sub(r'…', '', text)
     text = re.sub(r'[â€˜â€™â€œâ€â€”]','',text) #removing punctuation that is not captured by string.punctuation
     
     #Removing 'RT' and 'via'
-    text = re.sub(r'(^rt|^via)((?:\\b\\W*@\\w+)+): ', '', text)
+    #text = re.sub(r'(^rt|^via)((?:\\b\\W*@\\w+)+): ', '', text)
+    text = re.sub(r'^rt', '', text) 
     
     # Removing mentions
     text = re.sub(r'(@[A-zÃ¦Ã¸Ã¥0-9]{1,15})', '', text)
@@ -64,9 +66,9 @@ def preproc_docs(text):
     stop_words_list = nltk.corpus.stopwords.words('danish')
     tokens = [i for i in tokens if i not in stop_words_list]
     
-    # Removing generic Europe- and nuclear-related words
+    # Removing query-specific words
     stop_words_list = []
-    stop_words_list.extend(['mink'])
+    #stop_words_list.extend(['mink'])
     tokens = [i for i in tokens if i not in stop_words_list]
 
     return tokens
