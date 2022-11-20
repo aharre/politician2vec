@@ -51,7 +51,7 @@ def preproc_docs(text):
     text = re.sub(r'[0-9.]','', text)
 
     # Removing idiosynchratic characters in our data
-    text = re.sub(r'-\n|\n-|\na-|\nb-|â€“|Â«|--', '', text)
+    text = re.sub(r'-\n|\n-|\na-|\nb-|â€“|Â«|--|’', '', text)
     text = re.sub(r'- ', ' ', text)
 
     #Removing separators and superfluous whitespace
