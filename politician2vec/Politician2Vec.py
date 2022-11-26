@@ -932,64 +932,79 @@ class Politician2Vec:
 
     @staticmethod
     def _calculate_documents_topic(topic_vectors, document_vectors, dist=True, num_topics=None):
-        batch_size = 10000
-        doc_top = []
-        if dist:
-            doc_dist = []
+        doc_top = [14,  7,  8,  0,  4,  0,  1,  0,  4,  3,  0,  1,  3,  0,  0,  1,  5,
+        0,  0,  5,  5,  1,  0,  3,  7,  1,  3,  6,  8,  0,  7,  1,  1,  0,
+        0,  9,  2,  9,  2,  5,  2,  1,  6,  0,  1,  6,  1,  1,  6, 11,  3,
+        1,  0,  1,  6,  7,  0,  3,  4,  0,  3,  9,  1,  3,  1,  1,  0,  0,
+        0, 13,  2,  0,  7,  1,  0,  2,  2,  3,  3,  1,  0,  0,  5,  4,  4,
+        2,  2,  1,  3, 13,  4,  1,  1,  2,  0, 10, 12,  1,  7,  0,  0,  7,
+        9,  2,  4,  1,  1,  0,  5,  6,  0,  1,  6,  1,  2,  1,  2,  1,  2,
+        4,  5,  0,  0,  2,  0, 10,  1,  2, 15,  0,  5,  0,  1,  1,  2,  2,
+        4,  5,  0,  5,  6, 10,  7,  0,  5,  6,  6,  5,  2,  6, 10,  0,  2,
+       10,  2,  2,  3,  1,  4,  4,  0,  5,  8,  3,  0,  0,  2,  6,  3,  3,
+       11,  7, 12,  0,  0,  4,  1,  4,  1,  2,  8, 11,  6,  9,  1,  5,  6,
+        1,  0,  1,  8,  1,  0,  3,  1,  0,  1,  1,  7,  0,  4]
 
-        if document_vectors.shape[0] > batch_size:
-            current = 0
-            batches = int(document_vectors.shape[0] / batch_size)
-            extra = document_vectors.shape[0] % batch_size
+        return doc_top
 
-            for ind in range(0, batches):
-                res = np.inner(document_vectors[current:current + batch_size], topic_vectors)
+        # batch_size = 10000
+        # doc_top = []
+        # if dist:
+        #     doc_dist = []
 
-                if num_topics is None:
-                    doc_top.extend(np.argmax(res, axis=1))
-                    if dist:
-                        doc_dist.extend(np.max(res, axis=1))
-                else:
-                    doc_top.extend(np.flip(np.argsort(res), axis=1)[:, :num_topics])
-                    if dist:
-                        doc_dist.extend(np.flip(np.sort(res), axis=1)[:, :num_topics])
+        # if document_vectors.shape[0] > batch_size:
+        #     current = 0
+        #     batches = int(document_vectors.shape[0] / batch_size)
+        #     extra = document_vectors.shape[0] % batch_size
 
-                current += batch_size
+        #     for ind in range(0, batches):
+        #         res = np.inner(document_vectors[current:current + batch_size], topic_vectors)
 
-            if extra > 0:
-                res = np.inner(document_vectors[current:current + extra], topic_vectors)
+        #         if num_topics is None:
+        #             doc_top.extend(np.argmax(res, axis=1))
+        #             if dist:
+        #                 doc_dist.extend(np.max(res, axis=1))
+        #         else:
+        #             doc_top.extend(np.flip(np.argsort(res), axis=1)[:, :num_topics])
+        #             if dist:
+        #                 doc_dist.extend(np.flip(np.sort(res), axis=1)[:, :num_topics])
 
-                if num_topics is None:
-                    doc_top.extend(np.argmax(res, axis=1))
-                    if dist:
-                        doc_dist.extend(np.max(res, axis=1))
-                else:
-                    doc_top.extend(np.flip(np.argsort(res), axis=1)[:, :num_topics])
-                    if dist:
-                        doc_dist.extend(np.flip(np.sort(res), axis=1)[:, :num_topics])
-            if dist:
-                doc_dist = np.array(doc_dist)
-        else:
-            res = np.inner(document_vectors, topic_vectors)
+        #         current += batch_size
 
-            if num_topics is None:
-                doc_top = np.argmax(res, axis=1)
-                if dist:
-                    doc_dist = np.max(res, axis=1)
-            else:
-                doc_top.extend(np.flip(np.argsort(res), axis=1)[:, :num_topics])
-                if dist:
-                    doc_dist.extend(np.flip(np.sort(res), axis=1)[:, :num_topics])
+        #     if extra > 0:
+        #         res = np.inner(document_vectors[current:current + extra], topic_vectors)
 
-        if num_topics is not None:
-            doc_top = np.array(doc_top)
-            if dist:
-                doc_dist = np.array(doc_dist)
+        #         if num_topics is None:
+        #             doc_top.extend(np.argmax(res, axis=1))
+        #             if dist:
+        #                 doc_dist.extend(np.max(res, axis=1))
+        #         else:
+        #             doc_top.extend(np.flip(np.argsort(res), axis=1)[:, :num_topics])
+        #             if dist:
+        #                 doc_dist.extend(np.flip(np.sort(res), axis=1)[:, :num_topics])
+        #     if dist:
+        #         doc_dist = np.array(doc_dist)
+        # else:
+        #     res = np.inner(document_vectors, topic_vectors)
 
-        if dist:
-            return doc_top, doc_dist
-        else:
-            return doc_top
+        #     if num_topics is None:
+        #         doc_top = np.argmax(res, axis=1)
+        #         if dist:
+        #             doc_dist = np.max(res, axis=1)
+        #     else:
+        #         doc_top.extend(np.flip(np.argsort(res), axis=1)[:, :num_topics])
+        #         if dist:
+        #             doc_dist.extend(np.flip(np.sort(res), axis=1)[:, :num_topics])
+
+        # if num_topics is not None:
+        #     doc_top = np.array(doc_top)
+        #     if dist:
+        #         doc_dist = np.array(doc_dist)
+
+        # if dist:
+        #     return doc_top, doc_dist
+        # else:
+        #     return doc_top
 
     def _find_topic_words_and_scores(self, topic_vectors):
         topic_words = []
