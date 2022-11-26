@@ -369,7 +369,6 @@ class Politician2Vec:
     def __init__(self,
                  documents,
                  custom_clusters,
-                 hardcode_cluster_labels=False,
                  party_inference_method = 'mean',
                  min_count=50,
                  ngram_vocab=False,
@@ -933,7 +932,6 @@ class Politician2Vec:
 
     @staticmethod
     def _calculate_documents_topic(topic_vectors, document_vectors, dist=True, num_topics=None):
-
         batch_size = 10000
         doc_top = []
         if dist:
@@ -1010,44 +1008,31 @@ class Politician2Vec:
 
         return topic_words, topic_word_scores
 
-    def _assign_documents_to_topic(self, document_vectors, hierarchy=False, hardcode_cluster_labels=False):
+    def _assign_documents_to_topic(self, document_vectors, hierarchy=False):
 
-        if type(hardcode_cluster_labels) == list:
-            doc_top_new = np.array(hardcode_party_labels)
+        if hierarchy:
+            doc_top_new, doc_dist_new = self._calculate_documents_topic(self.topic_vectors_reduced,
+                                                                        document_vectors,
+                                                                        dist=True)
 
             self.doc_top_reduced = np.array(list(self.doc_top_reduced) + list(doc_top_new))
+            self.doc_dist_reduced = np.array(list(self.doc_dist_reduced) + list(doc_dist_new))
 
             topic_sizes_new = pd.Series(doc_top_new).value_counts()
             for top in topic_sizes_new.index.tolist():
                 self.topic_sizes_reduced[top] += topic_sizes_new[top]
             self.topic_sizes_reduced.sort_values(ascending=False, inplace=True)
             self._reorder_topics(hierarchy)
-
         else:
+            doc_top_new, doc_dist_new = self._calculate_documents_topic(self.topic_vectors, document_vectors, dist=True)
+            self.doc_top = np.array(list(self.doc_top) + list(doc_top_new))
+            self.doc_dist = np.array(list(self.doc_dist) + list(doc_dist_new))
 
-            if hierarchy:
-                doc_top_new, doc_dist_new = self._calculate_documents_topic(self.topic_vectors_reduced,
-                                                                            document_vectors,
-                                                                            dist=True)
-
-                self.doc_top_reduced = np.array(list(self.doc_top_reduced) + list(doc_top_new))
-                self.doc_dist_reduced = np.array(list(self.doc_dist_reduced) + list(doc_dist_new))
-
-                topic_sizes_new = pd.Series(doc_top_new).value_counts()
-                for top in topic_sizes_new.index.tolist():
-                    self.topic_sizes_reduced[top] += topic_sizes_new[top]
-                self.topic_sizes_reduced.sort_values(ascending=False, inplace=True)
-                self._reorder_topics(hierarchy)
-            else:
-                doc_top_new, doc_dist_new = self._calculate_documents_topic(self.topic_vectors, document_vectors, dist=True)
-                self.doc_top = np.array(list(self.doc_top) + list(doc_top_new))
-                self.doc_dist = np.array(list(self.doc_dist) + list(doc_dist_new))
-
-                topic_sizes_new = pd.Series(doc_top_new).value_counts()
-                for top in topic_sizes_new.index.tolist():
-                    self.topic_sizes[top] += topic_sizes_new[top]
-                self.topic_sizes.sort_values(ascending=False, inplace=True)
-                self._reorder_topics(hierarchy)
+            topic_sizes_new = pd.Series(doc_top_new).value_counts()
+            for top in topic_sizes_new.index.tolist():
+                self.topic_sizes[top] += topic_sizes_new[top]
+            self.topic_sizes.sort_values(ascending=False, inplace=True)
+            self._reorder_topics(hierarchy)
 
     def _unassign_documents_from_topic(self, doc_indexes, hierarchy=False):
         if hierarchy:
@@ -1506,7 +1491,6 @@ class Politician2Vec:
 
     def add_documents(self,
                       documents,
-                      hardcode_cluster_labels,
                       doc_ids=None,
                       tokenizer=None,
                       use_embedding_model_tokenizer=False,
@@ -1602,7 +1586,7 @@ class Politician2Vec:
             self.document_index.add_items(document_vectors, new_index_ids)
 
         # update topics
-        self._assign_documents_to_topic(document_vectors, hierarchy=False, hardcode_cluster_labels=hardcode_cluster_labels)
+        self._assign_documents_to_topic(document_vectors, hierarchy=False)
 
         if self.hierarchy is not None:
             self._assign_documents_to_topic(document_vectors, hierarchy=True)
