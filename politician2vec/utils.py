@@ -36,7 +36,7 @@ def preproc_docs(text):
     text = re.sub(r'^rt', '', text) 
     
     # Removing mentions
-    text = re.sub(r'(@[A-zÃ¦Ã¸Ã¥0-9]{1,15})', '', text)
+    text = re.sub(r'@[A-zÃ¦Ã¸Ã¥0-9]{1,15}', '', text)
     
     #Removing odd special characters
     text = re.sub(r"[â”»â”ƒâ”â”³â”“â”â”›â”—]","", text)
