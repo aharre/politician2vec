@@ -1,6 +1,8 @@
-# Author: Dimo Angelov
-#
+# Original author of party2Vec: Dimo Angelov
 # License: BSD 3 clause
+#
+# Slightly modified for politician embeddings and party inference by Mathias Bruun
+
 import logging
 import numpy as np
 import pandas as pd
@@ -161,9 +163,9 @@ def get_random_chunks(tokens, chunk_length, chunk_len_coverage_ratio, max_num_ch
 
 class Politician2Vec:
     """
-    Top2Vec
+    Politician2Vec
 
-    Creates jointly embedded topic, document and word vectors.
+    Creates jointly embedded party, document and word vectors.
 
 
     Parameters
@@ -176,7 +178,7 @@ class Politician2Vec:
         corpora a smaller min_count will be necessary.
 
     ngram_vocab: bool (Optional, default False)
-        Add phrases to topic descriptions.
+        Add phrases to party descriptions.
 
         Uses gensim phrases to find common phrases in the corpus and adds them
         to the vocabulary.
@@ -233,7 +235,7 @@ class Politician2Vec:
         https://www.sbert.net/docs/pretrained_models.html
 
         If passing a callable embedding_model note that it will not be saved
-        when saving a top2vec model. After loading such a saved top2vec model
+        when saving a politician2vec model. After loading such a saved politician2vec model
         the set_embedding_model method will need to be called and the same
         embedding_model callable used during training must be passed to it.
 
@@ -690,35 +692,35 @@ class Politician2Vec:
         # self.umap_model = umap_model	
         #self.cluster = cluster
 
-        # calculate topic vectors from dense areas of documents
+        # calculate party vectors from dense areas of documents
         logger.info(f'Estimating party positions using {party_inference_method}...')
 
-        # create topic vectors
-        self._create_topic_vectors(custom_clusters, party_inference_method) # cluster.labels_
+        # create party vectors
+        self._create_party_vectors(custom_clusters, party_inference_method) # cluster.labels_
 
-        # deduplicate topics
-        #self._deduplicate_topics()
+        # deduplicate parties
+        #self._deduplicate_parties()
 
-        # find topic words and scores
-        self.topic_words, self.topic_word_scores = self._find_topic_words_and_scores(topic_vectors=self.topic_vectors)
+        # find party words and scores
+        self.party_words, self.party_word_scores = self._find_party_words_and_scores(party_vectors=self.party_vectors)
 
-        # assign documents to topic
-        self.doc_top, self.doc_dist = self._calculate_documents_topic(self.topic_vectors,
+        # assign documents to party
+        self.doc_party, self.doc_dist = self._calculate_documents_party(self.party_vectors,
                                                                       self.document_vectors)
 
-        # calculate topic sizes
-        self.topic_sizes = self._calculate_topic_sizes(hierarchy=False)
+        # calculate party sizes
+        self.party_sizes = self._calculate_party_sizes(hierarchy=False)
 
-        # re-order topics
-        self._reorder_topics(hierarchy=False)
+        # re-order parties
+        self._reorder_parties(hierarchy=False)
 
-        # initialize variables for hierarchical topic reduction
-        self.topic_vectors_reduced = None
-        self.doc_top_reduced = None
+        # initialize variables for hierarchical party reduction
+        self.party_vectors_reduced = None
+        self.doc_party_reduced = None
         self.doc_dist_reduced = None
-        self.topic_sizes_reduced = None
-        self.topic_words_reduced = None
-        self.topic_word_scores_reduced = None
+        self.party_sizes_reduced = None
+        self.party_words_reduced = None
+        self.party_word_scores_reduced = None
         self.hierarchy = None
 
         # initialize document indexing variables
@@ -787,42 +789,42 @@ class Politician2Vec:
             File where model will be loaded from.
         """
 
-        top2vec_model = load(file)
+        politician2vec_model = load(file)
 
         # load document index
-        if top2vec_model.documents_indexed:
+        if politician2vec_model.documents_indexed:
             if not _HAVE_HNSWLIB:
                 raise ImportError(f"Cannot load document index.\n\n"
-                                  "Try: pip install top2vec[indexing]\n\n"
+                                  "Try: pip install politician2vec[indexing]\n\n"
                                   "Alternatively try: pip install hnswlib")
 
             temp = tempfile.NamedTemporaryFile(mode='w+b')
-            temp.write(top2vec_model.serialized_document_index)
-            document_vectors = top2vec_model.document_vectors
-            top2vec_model.document_index = hnswlib.Index(space='ip',
+            temp.write(politician2vec_model.serialized_document_index)
+            document_vectors = politician2vec_model.document_vectors
+            politician2vec_model.document_index = hnswlib.Index(space='ip',
                                                          dim=document_vectors.shape[1])
-            top2vec_model.document_index.load_index(temp.name, max_elements=document_vectors.shape[0])
+            politician2vec_model.document_index.load_index(temp.name, max_elements=document_vectors.shape[0])
             temp.close()
-            top2vec_model.serialized_document_index = None
+            politician2vec_model.serialized_document_index = None
 
         # load word index
-        if top2vec_model.words_indexed:
+        if politician2vec_model.words_indexed:
 
             if not _HAVE_HNSWLIB:
                 raise ImportError(f"Cannot load word index.\n\n"
-                                  "Try: pip install top2vec[indexing]\n\n"
+                                  "Try: pip install politician2vec[indexing]\n\n"
                                   "Alternatively try: pip install hnswlib")
 
             temp = tempfile.NamedTemporaryFile(mode='w+b')
-            temp.write(top2vec_model.serialized_word_index)
-            word_vectors = top2vec_model.word_vectors
-            top2vec_model.word_index = hnswlib.Index(space='ip',
+            temp.write(politician2vec_model.serialized_word_index)
+            word_vectors = politician2vec_model.word_vectors
+            politician2vec_model.word_index = hnswlib.Index(space='ip',
                                                      dim=word_vectors.shape[1])
-            top2vec_model.word_index.load_index(temp.name, max_elements=word_vectors.shape[0])
+            politician2vec_model.word_index.load_index(temp.name, max_elements=word_vectors.shape[0])
             temp.close()
-            top2vec_model.serialized_word_index = None
+            politician2vec_model.serialized_word_index = None
 
-        return top2vec_model
+        return politician2vec_model
 
     @staticmethod
     def _l2_normalize(vectors):
@@ -866,22 +868,22 @@ class Politician2Vec:
 
         return self._l2_normalize(np.array(self.embed([query])[0]))
 
-    def _create_topic_vectors(self, cluster_labels, party_inference_method):
+    def _create_party_vectors(self, cluster_labels, party_inference_method):
         unique_labels = set(cluster_labels)
         if -1 in unique_labels:
             unique_labels.remove(-1)
 
         if party_inference_method == 'medoid':
-            self.topic_vectors = self._l2_normalize(
+            self.party_vectors = self._l2_normalize(
                 np.vstack([np.median(self.document_vectors[np.where(cluster_labels == label)[0]],
                         axis=0) for label in unique_labels]))
         else:
-            self.topic_vectors = self._l2_normalize(
+            self.party_vectors = self._l2_normalize(
                 np.vstack([self.document_vectors[np.where(cluster_labels == label)[0]]
                         .mean(axis=0) for label in unique_labels]))
 
-    def _deduplicate_topics(self):
-        core_samples, labels = dbscan(X=self.topic_vectors,
+    def _deduplicate_parties(self):
+        core_samples, labels = dbscan(X=self.party_vectors,
                                       eps=0.1,
                                       min_samples=2,
                                       metric="cosine")
@@ -890,50 +892,50 @@ class Politician2Vec:
 
         if len(duplicate_clusters) > 1 or -1 not in duplicate_clusters:
 
-            # unique topics
-            unique_topics = self.topic_vectors[np.where(labels == -1)[0]]
+            # unique parties
+            unique_parties = self.party_vectors[np.where(labels == -1)[0]]
 
             if -1 in duplicate_clusters:
                 duplicate_clusters.remove(-1)
 
-            # merge duplicate topics
+            # merge duplicate parties
             for unique_label in duplicate_clusters:
-                unique_topics = np.vstack(
-                    [unique_topics, self._l2_normalize(self.topic_vectors[np.where(labels == unique_label)[0]]
+                unique_parties = np.vstack(
+                    [unique_parties, self._l2_normalize(self.party_vectors[np.where(labels == unique_label)[0]]
                                                        .mean(axis=0))])
 
-            self.topic_vectors = unique_topics
+            self.party_vectors = unique_parties
 
-    def _calculate_topic_sizes(self, hierarchy=False):
+    def _calculate_party_sizes(self, hierarchy=False):
         if hierarchy:
-            topic_sizes = pd.Series(self.doc_top_reduced).value_counts()
+            party_sizes = pd.Series(self.doc_party_reduced).value_counts()
         else:
-            topic_sizes = pd.Series(self.doc_top).value_counts()
+            party_sizes = pd.Series(self.doc_party).value_counts()
 
-        return topic_sizes
+        return party_sizes
 
-    def _reorder_topics(self, hierarchy=False):
+    def _reorder_parties(self, hierarchy=False):
 
         if hierarchy:
-            self.topic_vectors_reduced = self.topic_vectors_reduced[self.topic_sizes_reduced.index]
-            self.topic_words_reduced = self.topic_words_reduced[self.topic_sizes_reduced.index]
-            self.topic_word_scores_reduced = self.topic_word_scores_reduced[self.topic_sizes_reduced.index]
-            old2new = dict(zip(self.topic_sizes_reduced.index, range(self.topic_sizes_reduced.index.shape[0])))
-            self.doc_top_reduced = np.array([old2new[i] for i in self.doc_top_reduced])
-            self.hierarchy = [self.hierarchy[i] for i in self.topic_sizes_reduced.index]
-            self.topic_sizes_reduced.reset_index(drop=True, inplace=True)
+            self.party_vectors_reduced = self.party_vectors_reduced[self.party_sizes_reduced.index]
+            self.party_words_reduced = self.party_words_reduced[self.party_sizes_reduced.index]
+            self.party_word_scores_reduced = self.party_word_scores_reduced[self.party_sizes_reduced.index]
+            old2new = dict(zip(self.party_sizes_reduced.index, range(self.party_sizes_reduced.index.shape[0])))
+            self.doc_party_reduced = np.array([old2new[i] for i in self.doc_party_reduced])
+            self.hierarchy = [self.hierarchy[i] for i in self.party_sizes_reduced.index]
+            self.party_sizes_reduced.reset_index(drop=True, inplace=True)
         else:
-            self.topic_vectors = self.topic_vectors[self.topic_sizes.index]
-            self.topic_words = self.topic_words[self.topic_sizes.index]
-            self.topic_word_scores = self.topic_word_scores[self.topic_sizes.index]
-            old2new = dict(zip(self.topic_sizes.index, range(self.topic_sizes.index.shape[0])))
-            self.doc_top = np.array([old2new[i] for i in self.doc_top])
-            self.topic_sizes.reset_index(drop=True, inplace=True)
+            self.party_vectors = self.party_vectors[self.party_sizes.index]
+            self.party_words = self.party_words[self.party_sizes.index]
+            self.party_word_scores = self.party_word_scores[self.party_sizes.index]
+            old2new = dict(zip(self.party_sizes.index, range(self.party_sizes.index.shape[0])))
+            self.doc_party = np.array([old2new[i] for i in self.doc_party])
+            self.party_sizes.reset_index(drop=True, inplace=True)
 
     @staticmethod
-    def _calculate_documents_topic(topic_vectors, document_vectors, dist=True, num_topics=None):
+    def _calculate_documents_party(party_vectors, document_vectors, dist=True, num_parties=None):
         batch_size = 10000
-        doc_top = []
+        doc_party = []
         if dist:
             doc_dist = []
 
@@ -943,116 +945,116 @@ class Politician2Vec:
             extra = document_vectors.shape[0] % batch_size
 
             for ind in range(0, batches):
-                res = np.inner(document_vectors[current:current + batch_size], topic_vectors)
+                res = np.inner(document_vectors[current:current + batch_size], party_vectors)
 
-                if num_topics is None:
-                    doc_top.extend(np.argmax(res, axis=1))
+                if num_parties is None:
+                    doc_party.extend(np.argmax(res, axis=1))
                     if dist:
                         doc_dist.extend(np.max(res, axis=1))
                 else:
-                    doc_top.extend(np.flip(np.argsort(res), axis=1)[:, :num_topics])
+                    doc_party.extend(np.flip(np.argsort(res), axis=1)[:, :num_parties])
                     if dist:
-                        doc_dist.extend(np.flip(np.sort(res), axis=1)[:, :num_topics])
+                        doc_dist.extend(np.flip(np.sort(res), axis=1)[:, :num_parties])
 
                 current += batch_size
 
             if extra > 0:
-                res = np.inner(document_vectors[current:current + extra], topic_vectors)
+                res = np.inner(document_vectors[current:current + extra], party_vectors)
 
-                if num_topics is None:
-                    doc_top.extend(np.argmax(res, axis=1))
+                if num_parties is None:
+                    doc_party.extend(np.argmax(res, axis=1))
                     if dist:
                         doc_dist.extend(np.max(res, axis=1))
                 else:
-                    doc_top.extend(np.flip(np.argsort(res), axis=1)[:, :num_topics])
+                    doc_party.extend(np.flip(np.argsort(res), axis=1)[:, :num_parties])
                     if dist:
-                        doc_dist.extend(np.flip(np.sort(res), axis=1)[:, :num_topics])
+                        doc_dist.extend(np.flip(np.sort(res), axis=1)[:, :num_parties])
             if dist:
                 doc_dist = np.array(doc_dist)
         else:
-            res = np.inner(document_vectors, topic_vectors)
+            res = np.inner(document_vectors, party_vectors)
 
-            if num_topics is None:
-                doc_top = np.argmax(res, axis=1)
+            if num_parties is None:
+                doc_party = np.argmax(res, axis=1)
                 if dist:
                     doc_dist = np.max(res, axis=1)
             else:
-                doc_top.extend(np.flip(np.argsort(res), axis=1)[:, :num_topics])
+                doc_party.extend(np.flip(np.argsort(res), axis=1)[:, :num_parties])
                 if dist:
-                    doc_dist.extend(np.flip(np.sort(res), axis=1)[:, :num_topics])
+                    doc_dist.extend(np.flip(np.sort(res), axis=1)[:, :num_parties])
 
-        if num_topics is not None:
-            doc_top = np.array(doc_top)
+        if num_parties is not None:
+            doc_party = np.array(doc_party)
             if dist:
                 doc_dist = np.array(doc_dist)
 
         if dist:
-            return doc_top, doc_dist
+            return doc_party, doc_dist
         else:
-            return doc_top
+            return doc_party
 
-    def _find_topic_words_and_scores(self, topic_vectors):
-        topic_words = []
-        topic_word_scores = []
+    def _find_party_words_and_scores(self, party_vectors):
+        party_words = []
+        party_word_scores = []
 
-        res = np.inner(topic_vectors, self.word_vectors)
-        top_words = np.flip(np.argsort(res, axis=1), axis=1)
-        top_scores = np.flip(np.sort(res, axis=1), axis=1)
+        res = np.inner(party_vectors, self.word_vectors)
+        party_words = np.flip(np.argsort(res, axis=1), axis=1)
+        party_scores = np.flip(np.sort(res, axis=1), axis=1)
 
-        for words, scores in zip(top_words, top_scores):
-            topic_words.append([self.vocab[i] for i in words[0:50]])
-            topic_word_scores.append(scores[0:50])
+        for words, scores in zip(party_words, party_scores):
+            party_words.append([self.vocab[i] for i in words[0:50]])
+            party_word_scores.append(scores[0:50])
 
-        topic_words = np.array(topic_words)
-        topic_word_scores = np.array(topic_word_scores)
+        party_words = np.array(party_words)
+        party_word_scores = np.array(party_word_scores)
 
-        return topic_words, topic_word_scores
+        return party_words, party_word_scores
 
-    def _assign_documents_to_topic(self, document_vectors, hierarchy=False):
+    def _assign_documents_to_party(self, document_vectors, hierarchy=False):
 
         if hierarchy:
-            doc_top_new, doc_dist_new = self._calculate_documents_topic(self.topic_vectors_reduced,
+            doc_party_new, doc_dist_new = self._calculate_documents_party(self.party_vectors_reduced,
                                                                         document_vectors,
                                                                         dist=True)
 
-            self.doc_top_reduced = np.array(list(self.doc_top_reduced) + list(doc_top_new))
+            self.doc_party_reduced = np.array(list(self.doc_party_reduced) + list(doc_party_new))
             self.doc_dist_reduced = np.array(list(self.doc_dist_reduced) + list(doc_dist_new))
 
-            topic_sizes_new = pd.Series(doc_top_new).value_counts()
-            for top in topic_sizes_new.index.tolist():
-                self.topic_sizes_reduced[top] += topic_sizes_new[top]
-            self.topic_sizes_reduced.sort_values(ascending=False, inplace=True)
-            self._reorder_topics(hierarchy)
+            party_sizes_new = pd.Series(doc_party_new).value_counts()
+            for party in party_sizes_new.index.tolist():
+                self.party_sizes_reduced[party] += party_sizes_new[party]
+            self.party_sizes_reduced.sort_values(ascending=False, inplace=True)
+            self._reorder_parties(hierarchy)
         else:
-            doc_top_new, doc_dist_new = self._calculate_documents_topic(self.topic_vectors, document_vectors, dist=True)
-            self.doc_top = np.array(list(self.doc_top) + list(doc_top_new))
+            doc_party_new, doc_dist_new = self._calculate_documents_party(self.party_vectors, document_vectors, dist=True)
+            self.doc_party = np.array(list(self.doc_party) + list(doc_party_new))
             self.doc_dist = np.array(list(self.doc_dist) + list(doc_dist_new))
 
-            topic_sizes_new = pd.Series(doc_top_new).value_counts()
-            for top in topic_sizes_new.index.tolist():
-                self.topic_sizes[top] += topic_sizes_new[top]
-            self.topic_sizes.sort_values(ascending=False, inplace=True)
-            self._reorder_topics(hierarchy)
+            party_sizes_new = pd.Series(doc_party_new).value_counts()
+            for party in party_sizes_new.index.tolist():
+                self.party_sizes[party] += party_sizes_new[party]
+            self.party_sizes.sort_values(ascending=False, inplace=True)
+            self._reorder_parties(hierarchy)
 
-    def _unassign_documents_from_topic(self, doc_indexes, hierarchy=False):
+    def _unassign_documents_from_party(self, doc_indexes, hierarchy=False):
         if hierarchy:
-            doc_top_remove = self.doc_top_reduced[doc_indexes]
-            self.doc_top_reduced = np.delete(self.doc_top_reduced, doc_indexes, 0)
+            doc_party_remove = self.doc_party_reduced[doc_indexes]
+            self.doc_party_reduced = np.delete(self.doc_party_reduced, doc_indexes, 0)
             self.doc_dist_reduced = np.delete(self.doc_dist_reduced, doc_indexes, 0)
-            topic_sizes_remove = pd.Series(doc_top_remove).value_counts()
-            for top in topic_sizes_remove.index.tolist():
-                self.topic_sizes_reduced[top] -= topic_sizes_remove[top]
-            self.topic_sizes_reduced.sort_values(ascending=False, inplace=True)
-            self._reorder_topics(hierarchy)
+            party_sizes_remove = pd.Series(doc_party_remove).value_counts()
+            for party in party_sizes_remove.index.tolist():
+                self.party_sizes_reduced[party] -= party_sizes_remove[party]
+            self.party_sizes_reduced.sort_values(ascending=False, inplace=True)
+            self._reorder_parties(hierarchy)
         else:
-            doc_top_remove = self.doc_top[doc_indexes]
-            self.doc_top = np.delete(self.doc_top, doc_indexes, 0)
+            doc_party_remove = self.doc_party[doc_indexes]
+            self.doc_party = np.delete(self.doc_party, doc_indexes, 0)
             self.doc_dist = np.delete(self.doc_dist, doc_indexes, 0)
-            topic_sizes_remove = pd.Series(doc_top_remove).value_counts()
-            for top in topic_sizes_remove.index.tolist():
-                self.topic_sizes[top] -= topic_sizes_remove[top]
-            self.topic_sizes.sort_values(ascending=False, inplace=True)
-            self._reorder_topics(hierarchy)
+            party_sizes_remove = pd.Series(doc_party_remove).value_counts()
+            for party in party_sizes_remove.index.tolist():
+                self.party_sizes[party] -= party_sizes_remove[party]
+            self.party_sizes.sort_values(ascending=False, inplace=True)
+            self._reorder_parties(hierarchy)
 
     def _get_document_ids(self, doc_index):
         return self.document_ids[doc_index]
@@ -1091,7 +1093,7 @@ class Politician2Vec:
     def _check_hnswlib_status():
         if not _HAVE_HNSWLIB:
             raise ImportError(f"Indexing is not available.\n\n"
-                              "Try: pip install top2vec[indexing]\n\n"
+                              "Try: pip install politician2vec[indexing]\n\n"
                               "Alternatively try: pip install hnswlib")
 
     def _check_document_index_status(self):
@@ -1108,12 +1110,12 @@ class Politician2Vec:
         if self.embedding_model in use_models:
             if not _HAVE_TENSORFLOW:
                 raise ImportError(f"{self.embedding_model} is not available.\n\n"
-                                  "Try: pip install top2vec[sentence_encoders]\n\n"
+                                  "Try: pip install politician2vec[sentence_encoders]\n\n"
                                   "Alternatively try: pip install tensorflow tensorflow_hub tensorflow_text")
         elif self.embedding_model in sbert_models:
             if not _HAVE_TORCH:
                 raise ImportError(f"{self.embedding_model} is not available.\n\n"
-                                  "Try: pip install top2vec[sentence_transformers]\n\n"
+                                  "Try: pip install politician2vec[sentence_transformers]\n\n"
                                   "Alternatively try: pip install torch sentence_transformers")
 
     def _check_model_status(self):
@@ -1159,52 +1161,52 @@ class Politician2Vec:
 
     def _validate_hierarchical_reduction(self):
         if self.hierarchy is None:
-            raise ValueError("Hierarchical topic reduction has not been performed.")
+            raise ValueError("Hierarchical party reduction has not been performed.")
 
-    def _validate_hierarchical_reduction_num_topics(self, num_topics):
-        current_num_topics = len(self.topic_vectors)
-        if num_topics >= current_num_topics:
-            raise ValueError(f"Number of topics must be less than {current_num_topics}.")
+    def _validate_hierarchical_reduction_num_parties(self, num_parties):
+        current_num_parties = len(self.party_vectors)
+        if num_parties >= current_num_parties:
+            raise ValueError(f"Number of parties must be less than {current_num_parties}.")
 
     def _validate_num_docs(self, num_docs):
         self._less_than_zero(num_docs, "num_docs")
-        document_count = len(self.doc_top)
+        document_count = len(self.doc_party)
         if num_docs > document_count:
             raise ValueError(f"num_docs cannot exceed the number of documents: {document_count}.")
 
-    def _validate_num_topics(self, num_topics, reduced):
-        self._less_than_zero(num_topics, "num_topics")
+    def _validate_num_parties(self, num_parties, reduced):
+        self._less_than_zero(num_parties, "num_parties")
         if reduced:
-            topic_count = len(self.topic_vectors_reduced)
-            if num_topics > topic_count:
-                raise ValueError(f"num_topics cannot exceed the number of reduced topics: {topic_count}.")
+            party_count = len(self.party_vectors_reduced)
+            if num_parties > party_count:
+                raise ValueError(f"num_parties cannot exceed the number of reduced parties: {party_count}.")
         else:
-            topic_count = len(self.topic_vectors)
-            if num_topics > topic_count:
-                raise ValueError(f"num_topics cannot exceed the number of topics: {topic_count}.")
+            party_count = len(self.party_vectors)
+            if num_parties > party_count:
+                raise ValueError(f"num_parties cannot exceed the number of parties: {party_count}.")
 
-    def _validate_topic_num(self, topic_num, reduced):
-        self._less_than_zero(topic_num, "topic_num")
+    def _validate_party_num(self, party_num, reduced):
+        self._less_than_zero(party_num, "party_num")
 
         if reduced:
-            topic_count = len(self.topic_vectors_reduced) - 1
-            if topic_num > topic_count:
-                raise ValueError(f"Invalid topic number: valid reduced topics numbers are 0 to {topic_count}.")
+            party_count = len(self.party_vectors_reduced) - 1
+            if party_num > party_count:
+                raise ValueError(f"Invalid party number: valid reduced parties numbers are 0 to {party_count}.")
         else:
-            topic_count = len(self.topic_vectors) - 1
-            if topic_num > topic_count:
-                raise ValueError(f"Invalid topic number: valid original topics numbers are 0 to {topic_count}.")
+            party_count = len(self.party_vectors) - 1
+            if party_num > party_count:
+                raise ValueError(f"Invalid party number: valid original parties numbers are 0 to {party_count}.")
 
-    def _validate_topic_search(self, topic_num, num_docs, reduced):
+    def _validate_party_search(self, party_num, num_docs, reduced):
         self._less_than_zero(num_docs, "num_docs")
         if reduced:
-            if num_docs > self.topic_sizes_reduced[topic_num]:
-                raise ValueError(f"Invalid number of documents: reduced topic {topic_num}"
-                                 f" only has {self.topic_sizes_reduced[topic_num]} documents.")
+            if num_docs > self.party_sizes_reduced[party_num]:
+                raise ValueError(f"Invalid number of documents: reduced party {party_num}"
+                                 f" only has {self.party_sizes_reduced[party_num]} documents.")
         else:
-            if num_docs > self.topic_sizes[topic_num]:
-                raise ValueError(f"Invalid number of documents: original topic {topic_num}"
-                                 f" only has {self.topic_sizes[topic_num]} documents.")
+            if num_docs > self.party_sizes[party_num]:
+                raise ValueError(f"Invalid number of documents: original party {party_num}"
+                                 f" only has {self.party_sizes[party_num]} documents.")
 
     def _validate_doc_ids(self, doc_ids, doc_ids_neg):
 
@@ -1226,7 +1228,7 @@ class Politician2Vec:
                     raise ValueError(f"{doc_id} is not a valid document id.")
         elif min(doc_ids) < 0:
             raise ValueError(f"{min(doc_ids)} is not a valid document id.")
-        elif max(doc_ids) > len(self.doc_top) - 1:
+        elif max(doc_ids) > len(self.doc_party) - 1:
             raise ValueError(f"{max(doc_ids)} is not a valid document id.")
 
     def _validate_keywords(self, keywords, keywords_neg):
@@ -1362,7 +1364,7 @@ class Politician2Vec:
 
     def set_embedding_model(self, embedding_model):
         """
-        Set the embedding model. This is called after loading a saved Top2Vec
+        Set the embedding model. This is called after loading a saved Politician2Vec
         model which was trained with a passed callable embedding_model.
 
         Parameters
@@ -1396,20 +1398,20 @@ class Politician2Vec:
     def change_to_download_embedding_model(self):
         """
         Use automatic download to load embedding model used for training.
-        Top2Vec will no longer try and load the embedding model from a file
+        Politician2Vec will no longer try and load the embedding model from a file
         if a embedding_model path was previously added.
 
         """
         self.embedding_model_path = None
 
-    def get_documents_topics(self, doc_ids, reduced=False, num_topics=1):
+    def get_documents_parties(self, doc_ids, reduced=False, num_parties=1):
         """
-        Get document topics.
+        Get document parties.
 
-        The topic of each document will be returned.
+        The party of each document will be returned.
 
-        The corresponding original topics are returned unless reduced=True,
-        in which case the reduced topics will be returned.
+        The corresponding original parties are returned unless reduced=True,
+        in which case the reduced parties will be returned.
 
         Parameters
         ----------
@@ -1419,37 +1421,37 @@ class Politician2Vec:
             the index of each document in the model is the id.
 
         reduced: bool (Optional, default False)
-            Original topics are returned by default. If True the
-            reduced topics will be returned.
+            Original parties are returned by default. If True the
+            reduced parties will be returned.
 
-        num_topics: int (Optional, default 1)
-            The number of topics to return per document.
+        num_parties: int (Optional, default 1)
+            The number of parties to return per document.
 
         Returns
         -------
-        topic_nums: array of int, shape(len(doc_ids), num_topics)
-            The topic number(s) of the document corresponding to each doc_id.
+        party_nums: array of int, shape(len(doc_ids), num_parties)
+            The party number(s) of the document corresponding to each doc_id.
 
-        topic_score: array of float, shape(len(doc_ids), num_topics)
-            Semantic similarity of document to topic(s). The cosine similarity
-            of the document and topic vector.
+        party_score: array of float, shape(len(doc_ids), num_parties)
+            Semantic similarity of document to party(s). The cosine similarity
+            of the document and party vector.
 
-        topics_words: array of shape(len(doc_ids), num_topics, 50)
-            For each topic the top 50 words are returned, in order
-            of semantic similarity to topic.
+        parties_words: array of shape(len(doc_ids), num_parties, 50)
+            For each party the party 50 words are returned, in order
+            of semantic similarity to party.
 
             Example:
-            [['data', 'deep', 'learning' ... 'artificial'],          <Topic 4>
-            ['environment', 'warming', 'climate ... 'temperature']  <Topic 21>
+            [['data', 'deep', 'learning' ... 'artificial'],          <party 4>
+            ['environment', 'warming', 'climate ... 'temperature']  <party 21>
             ...]
 
-        word_scores: array of shape(num_topics, 50)
-            For each topic the cosine similarity scores of the
-            top 50 words to the topic are returned.
+        word_scores: array of shape(num_parties, 50)
+            For each party the cosine similarity scores of the
+            party 50 words to the party are returned.
 
             Example:
-            [[0.7132, 0.6473, 0.5700 ... 0.3455],  <Topic 4>
-            [0.7818', 0.7671, 0.7603 ... 0.6769]  <Topic 21>
+            [[0.7132, 0.6473, 0.5700 ... 0.3455],  <party 4>
+            [0.7818', 0.7671, 0.7603 ... 0.6769]  <party 21>
             ...]
 
         """
@@ -1462,32 +1464,32 @@ class Politician2Vec:
         # get document indexes from ids
         doc_indexes = self._get_document_indexes(doc_ids)
 
-        if num_topics == 1:
+        if num_parties == 1:
             if reduced:
-                doc_topics = self.doc_top_reduced[doc_indexes]
+                doc_parties = self.doc_party_reduced[doc_indexes]
                 doc_dist = self.doc_dist_reduced[doc_indexes]
-                topic_words = self.topic_words_reduced[doc_topics]
-                topic_word_scores = self.topic_word_scores_reduced[doc_topics]
+                party_words = self.party_words_reduced[doc_parties]
+                party_word_scores = self.party_word_scores_reduced[doc_parties]
             else:
-                doc_topics = self.doc_top[doc_indexes]
+                doc_parties = self.doc_party[doc_indexes]
                 doc_dist = self.doc_dist[doc_indexes]
-                topic_words = self.topic_words[doc_topics]
-                topic_word_scores = self.topic_word_scores[doc_topics]
+                party_words = self.party_words[doc_parties]
+                party_word_scores = self.party_word_scores[doc_parties]
 
         else:
             if reduced:
-                topic_vectors = self.topic_vectors_reduced
+                party_vectors = self.party_vectors_reduced
             else:
-                topic_vectors = self.topic_vectors
+                party_vectors = self.party_vectors
 
-            doc_topics, doc_dist = self._calculate_documents_topic(topic_vectors,
+            doc_parties, doc_dist = self._calculate_documents_party(party_vectors,
                                                                    self.document_vectors[doc_indexes],
-                                                                   num_topics=num_topics)
+                                                                   num_parties=num_parties)
 
-            topic_words = np.array([self.topic_words[topics] for topics in doc_topics])
-            topic_word_scores = np.array([self.topic_word_scores[topics] for topics in doc_topics])
+            party_words = np.array([self.party_words[parties] for parties in doc_parties])
+            party_word_scores = np.array([self.party_word_scores[parties] for parties in doc_parties])
 
-        return doc_topics, doc_dist, topic_words, topic_word_scores
+        return doc_parties, doc_dist, party_words, party_word_scores
 
     def add_documents(self,
                       documents,
@@ -1499,7 +1501,7 @@ class Politician2Vec:
         Update the model with new documents.
 
         The documents will be added to the current model without changing
-        existing document, word and topic vectors. Topic sizes will be updated.
+        existing document, word and party vectors. party sizes will be updated.
 
         If adding a large quantity of documents relative to the current model
         size, or documents containing a largely new vocabulary, a new model
@@ -1585,11 +1587,11 @@ class Politician2Vec:
             self.doc_id2index_id.update(dict(zip(doc_ids, new_index_ids)))
             self.document_index.add_items(document_vectors, new_index_ids)
 
-        # update topics
-        self._assign_documents_to_topic(document_vectors, hierarchy=False)
+        # update parties
+        self._assign_documents_to_party(document_vectors, hierarchy=False)
 
         if self.hierarchy is not None:
-            self._assign_documents_to_topic(document_vectors, hierarchy=True)
+            self._assign_documents_to_party(document_vectors, hierarchy=True)
 
     def delete_documents(self, doc_ids):
         """
@@ -1599,7 +1601,7 @@ class Politician2Vec:
         documents will change the indexes and therefore doc_ids.
 
         The documents will be deleted from the current model without changing
-        existing document, word and topic vectors. Topic sizes will be updated.
+        existing document, word and party vectors. party sizes will be updated.
 
         If deleting a large quantity of documents relative to the current model
         size a new model should be trained for best results.
@@ -1645,36 +1647,36 @@ class Politician2Vec:
         # delete document vectors
         self.document_vectors = np.delete(self.document_vectors, doc_indexes, 0)
 
-        # update topics
-        self._unassign_documents_from_topic(doc_indexes, hierarchy=False)
+        # update parties
+        self._unassign_documents_from_party(doc_indexes, hierarchy=False)
 
         if self.hierarchy is not None:
-            self._unassign_documents_from_topic(doc_indexes, hierarchy=True)
+            self._unassign_documents_from_party(doc_indexes, hierarchy=True)
 
-    def get_num_topics(self, reduced=False):
+    def get_num_parties(self, reduced=False):
         """
-        Get number of topics.
+        Get number of parties.
 
-        This is the number of topics Top2Vec has found in the data by default.
-        If reduced is True, the number of reduced topics is returned.
+        This is the number of parties Politician2Vec has found in the data by default.
+        If reduced is True, the number of reduced parties is returned.
 
         Parameters
         ----------
         reduced: bool (Optional, default False)
-            The number of original topics will be returned by default. If True
-            will return the number of reduced topics, if hierarchical topic
+            The number of original parties will be returned by default. If True
+            will return the number of reduced parties, if hierarchical party
             reduction has been performed.
 
         Returns
         -------
-        num_topics: int
+        num_parties: int
         """
 
         if reduced:
             self._validate_hierarchical_reduction()
-            return len(self.topic_vectors_reduced)
+            return len(self.party_vectors_reduced)
         else:
-            return len(self.topic_vectors)
+            return len(self.party_vectors)
         
     def get_umap(self):	
         """	
@@ -1706,118 +1708,118 @@ class Politician2Vec:
         else:
             return self.document_vectors
 
-    def get_topic_sizes(self, reduced=False):
+    def get_party_sizes(self, reduced=False):
         """
-        Get topic sizes.
+        Get party sizes.
 
-        The number of documents most similar to each topic. Topics are
+        The number of documents most similar to each party. parties are
         in increasing order of size.
 
-        The sizes of the original topics is returned unless reduced=True,
-        in which case the sizes of the reduced topics will be returned.
+        The sizes of the original parties is returned unless reduced=True,
+        in which case the sizes of the reduced parties will be returned.
 
         Parameters
         ----------
         reduced: bool (Optional, default False)
-            Original topic sizes are returned by default. If True the
-            reduced topic sizes will be returned.
+            Original party sizes are returned by default. If True the
+            reduced party sizes will be returned.
 
         Returns
         -------
-        topic_sizes: array of int, shape(num_topics)
-            The number of documents most similar to the topic.
-        topic_nums: array of int, shape(num_topics)
-            The unique number of every topic will be returned.
+        party_sizes: array of int, shape(num_parties)
+            The number of documents most similar to the party.
+        party_nums: array of int, shape(num_parties)
+            The unique number of every party will be returned.
         """
         if reduced:
             self._validate_hierarchical_reduction()
-            return np.array(self.topic_sizes_reduced.values), np.array(self.topic_sizes_reduced.index)
+            return np.array(self.party_sizes_reduced.values), np.array(self.party_sizes_reduced.index)
         else:
-            return np.array(self.topic_sizes.values), np.array(self.topic_sizes.index)
+            return np.array(self.party_sizes.values), np.array(self.party_sizes.index)
 
-    def get_topics(self, num_topics=None, reduced=False):
+    def get_parties(self, num_parties=None, reduced=False):
         """
-        Get topics, ordered by decreasing size. All topics are returned
-        if num_topics is not specified.
+        Get parties, ordered by decreasing size. All parties are returned
+        if num_parties is not specified.
 
-        The original topics found are returned unless reduced=True,
-        in which case reduced topics will be returned.
+        The original parties found are returned unless reduced=True,
+        in which case reduced parties will be returned.
 
-        Each topic will consist of the top 50 semantically similar words
-        to the topic. These are the 50 words closest to topic vector
+        Each party will consist of the party 50 semantically similar words
+        to the party. These are the 50 words closest to party vector
         along with cosine similarity of each word from vector. The
-        higher the score the more relevant the word is to the topic.
+        higher the score the more relevant the word is to the party.
 
         Parameters
         ----------
-        num_topics: int, (Optional)
-            Number of topics to return.
+        num_parties: int, (Optional)
+            Number of parties to return.
 
         reduced: bool (Optional, default False)
-            Original topics are returned by default. If True the
-            reduced topics will be returned.
+            Original parties are returned by default. If True the
+            reduced parties will be returned.
 
         Returns
         -------
-        topics_words: array of shape(num_topics, 50)
-            For each topic the top 50 words are returned, in order
-            of semantic similarity to topic.
+        parties_words: array of shape(num_parties, 50)
+            For each party the party 50 words are returned, in order
+            of semantic similarity to party.
 
             Example:
-            [['data', 'deep', 'learning' ... 'artificial'],         <Topic 0>
-            ['environment', 'warming', 'climate ... 'temperature']  <Topic 1>
+            [['data', 'deep', 'learning' ... 'artificial'],         <party 0>
+            ['environment', 'warming', 'climate ... 'temperature']  <party 1>
             ...]
 
-        word_scores: array of shape(num_topics, 50)
-            For each topic the cosine similarity scores of the
-            top 50 words to the topic are returned.
+        word_scores: array of shape(num_parties, 50)
+            For each party the cosine similarity scores of the
+            party 50 words to the party are returned.
 
             Example:
-            [[0.7132, 0.6473, 0.5700 ... 0.3455],  <Topic 0>
-            [0.7818', 0.7671, 0.7603 ... 0.6769]   <Topic 1>
+            [[0.7132, 0.6473, 0.5700 ... 0.3455],  <party 0>
+            [0.7818', 0.7671, 0.7603 ... 0.6769]   <party 1>
             ...]
 
-        topic_nums: array of int, shape(num_topics)
-            The unique number of every topic will be returned.
+        party_nums: array of int, shape(num_parties)
+            The unique number of every party will be returned.
         """
         if reduced:
             self._validate_hierarchical_reduction()
 
-            if num_topics is None:
-                num_topics = len(self.topic_vectors_reduced)
+            if num_parties is None:
+                num_parties = len(self.party_vectors_reduced)
             else:
-                self._validate_num_topics(num_topics, reduced)
+                self._validate_num_parties(num_parties, reduced)
 
-            return self.topic_words_reduced[0:num_topics], self.topic_word_scores_reduced[0:num_topics], np.array(
-                range(0, num_topics))
+            return self.party_words_reduced[0:num_parties], self.party_word_scores_reduced[0:num_parties], np.array(
+                range(0, num_parties))
         else:
 
-            if num_topics is None:
-                num_topics = len(self.topic_vectors)
+            if num_parties is None:
+                num_parties = len(self.party_vectors)
             else:
-                self._validate_num_topics(num_topics, reduced)
+                self._validate_num_parties(num_parties, reduced)
 
-            return self.topic_words[0:num_topics], self.topic_word_scores[0:num_topics], np.array(range(0, num_topics))
+            return self.party_words[0:num_parties], self.party_word_scores[0:num_parties], np.array(range(0, num_parties))
 
-    def get_topic_hierarchy(self):
+    def get_party_hierarchy(self):
         """
-        Get the hierarchy of reduced topics. The mapping of each original topic
-        to the reduced topics is returned.
+        Get the hierarchy of reduced parties. The mapping of each original party
+        to the reduced parties is returned.
 
-        Hierarchical topic reduction must be performed before calling this
+        Hierarchical party reduction must be performed before calling this
         method.
 
         Returns
         -------
         hierarchy: list of ints
-            Each index of the hierarchy corresponds to the topic number of a
-            reduced topic. For each reduced topic the topic numbers of the
-            original topics that were merged to create it are listed.
+            Each index of the hierarchy corresponds to the party number of a
+            reduced party. For each reduced party the party numbers of the
+            original parties that were merged to create it are listed.
 
             Example:
-            [[3]  <Reduced Topic 0> contains original Topic 3
-            [2,4] <Reduced Topic 1> contains original Topics 2 and 4
-            [0,1] <Reduced Topic 3> contains original Topics 0 and 1
+            [[3]  <Reduced party 0> contains original party 3
+            [2,4] <Reduced party 1> contains original parties 2 and 4
+            [0,1] <Reduced party 3> contains original parties 0 and 1
             ...]
         """
 
@@ -1825,90 +1827,90 @@ class Politician2Vec:
 
         return self.hierarchy
 
-    def hierarchical_topic_reduction(self, num_topics):
+    def hierarchical_party_reduction(self, num_parties):
         """
-        Reduce the number of topics discovered by Top2Vec.
+        Reduce the number of parties discovered by Politician2Vec.
 
-        The most representative topics of the corpus will be found, by
-        iteratively merging each smallest topic to the most similar topic until
-        num_topics is reached.
+        The most representative parties of the corpus will be found, by
+        iteratively merging each smallest party to the most similar party until
+        num_parties is reached.
 
         Parameters
         ----------
-        num_topics: int
-            The number of topics to reduce to.
+        num_parties: int
+            The number of parties to reduce to.
 
         Returns
         -------
         hierarchy: list of ints
-            Each index of hierarchy corresponds to the reduced topics, for each
-            reduced topic the indexes of the original topics that were merged
+            Each index of hierarchy corresponds to the reduced parties, for each
+            reduced party the indexes of the original parties that were merged
             to create it are listed.
 
             Example:
-            [[3]  <Reduced Topic 0> contains original Topic 3
-            [2,4] <Reduced Topic 1> contains original Topics 2 and 4
-            [0,1] <Reduced Topic 3> contains original Topics 0 and 1
+            [[3]  <Reduced party 0> contains original party 3
+            [2,4] <Reduced party 1> contains original parties 2 and 4
+            [0,1] <Reduced party 3> contains original parties 0 and 1
             ...]
         """
-        self._validate_hierarchical_reduction_num_topics(num_topics)
+        self._validate_hierarchical_reduction_num_parties(num_parties)
 
-        num_topics_current = self.topic_vectors.shape[0]
-        top_vecs = self.topic_vectors
-        top_sizes = [self.topic_sizes[i] for i in range(0, len(self.topic_sizes))]
-        hierarchy = [[i] for i in range(self.topic_vectors.shape[0])]
+        num_parties_current = self.party_vectors.shape[0]
+        party_vecs = self.party_vectors
+        party_sizes = [self.party_sizes[i] for i in range(0, len(self.party_sizes))]
+        hierarchy = [[i] for i in range(self.party_vectors.shape[0])]
 
         count = 0
         interval = max(int(self.document_vectors.shape[0] / 50000), 1)
 
-        while num_topics_current > num_topics:
+        while num_parties_current > num_parties:
 
-            # find smallest and most similar topics
-            smallest = np.argmin(top_sizes)
-            res = np.inner(top_vecs[smallest], top_vecs)
+            # find smallest and most similar parties
+            smallest = np.argmin(party_sizes)
+            res = np.inner(party_vecs[smallest], party_vecs)
             sims = np.flip(np.argsort(res))
             most_sim = sims[1]
             if most_sim == smallest:
                 most_sim = sims[0]
 
-            # calculate combined topic vector
-            top_vec_smallest = top_vecs[smallest]
-            smallest_size = top_sizes[smallest]
+            # calculate combined party vector
+            party_vec_smallest = party_vecs[smallest]
+            smallest_size = party_sizes[smallest]
 
-            top_vec_most_sim = top_vecs[most_sim]
-            most_sim_size = top_sizes[most_sim]
+            party_vec_most_sim = party_vecs[most_sim]
+            most_sim_size = party_sizes[most_sim]
 
-            combined_vec = self._l2_normalize(((top_vec_smallest * smallest_size) +
-                                               (top_vec_most_sim * most_sim_size)) / (smallest_size + most_sim_size))
+            combined_vec = self._l2_normalize(((party_vec_smallest * smallest_size) +
+                                               (party_vec_most_sim * most_sim_size)) / (smallest_size + most_sim_size))
 
-            # update topic vectors
-            ix_keep = list(range(len(top_vecs)))
+            # update party vectors
+            ix_keep = list(range(len(party_vecs)))
             ix_keep.remove(smallest)
             ix_keep.remove(most_sim)
-            top_vecs = top_vecs[ix_keep]
-            top_vecs = np.vstack([top_vecs, combined_vec])
-            num_topics_current = top_vecs.shape[0]
+            party_vecs = party_vecs[ix_keep]
+            party_vecs = np.vstack([party_vecs, combined_vec])
+            num_parties_current = party_vecs.shape[0]
 
-            # update topics sizes
+            # update parties sizes
             if count % interval == 0:
-                doc_top = self._calculate_documents_topic(topic_vectors=top_vecs,
+                doc_party = self._calculate_documents_party(party_vectors=party_vecs,
                                                           document_vectors=self.document_vectors,
                                                           dist=False)
-                topic_sizes = pd.Series(doc_top).value_counts()
-                top_sizes = [topic_sizes[i] for i in range(0, len(topic_sizes))]
+                party_sizes = pd.Series(doc_party).value_counts()
+                party_sizes = [party_sizes[i] for i in range(0, len(party_sizes))]
 
             else:
-                smallest_size = top_sizes.pop(smallest)
+                smallest_size = party_sizes.pop(smallest)
                 if most_sim < smallest:
-                    most_sim_size = top_sizes.pop(most_sim)
+                    most_sim_size = party_sizes.pop(most_sim)
                 else:
-                    most_sim_size = top_sizes.pop(most_sim - 1)
+                    most_sim_size = party_sizes.pop(most_sim - 1)
                 combined_size = smallest_size + most_sim_size
-                top_sizes.append(combined_size)
+                party_sizes.append(combined_size)
 
             count += 1
 
-            # update topic hierarchy
+            # update party hierarchy
             smallest_inds = hierarchy.pop(smallest)
             if most_sim < smallest:
                 most_sim_inds = hierarchy.pop(most_sim)
@@ -1918,28 +1920,28 @@ class Politician2Vec:
             combined_inds = smallest_inds + most_sim_inds
             hierarchy.append(combined_inds)
 
-        # re-calculate topic vectors from clusters
-        doc_top = self._calculate_documents_topic(topic_vectors=top_vecs,
+        # re-calculate party vectors from clusters
+        doc_party = self._calculate_documents_party(party_vectors=party_vecs,
                                                   document_vectors=self.document_vectors,
                                                   dist=False)
-        self.topic_vectors_reduced = self._l2_normalize(np.vstack([self.document_vectors
-                                                                   [np.where(doc_top == label)[0]]
-                                                                  .mean(axis=0) for label in set(doc_top)]))
+        self.party_vectors_reduced = self._l2_normalize(np.vstack([self.document_vectors
+                                                                   [np.where(doc_party == label)[0]]
+                                                                  .mean(axis=0) for label in set(doc_party)]))
 
         self.hierarchy = hierarchy
 
-        # assign documents to topic
-        self.doc_top_reduced, self.doc_dist_reduced = self._calculate_documents_topic(self.topic_vectors_reduced,
+        # assign documents to party
+        self.doc_party_reduced, self.doc_dist_reduced = self._calculate_documents_party(self.party_vectors_reduced,
                                                                                       self.document_vectors)
-        # find topic words and scores
-        self.topic_words_reduced, self.topic_word_scores_reduced = self._find_topic_words_and_scores(
-            topic_vectors=self.topic_vectors_reduced)
+        # find party words and scores
+        self.party_words_reduced, self.party_word_scores_reduced = self._find_party_words_and_scores(
+            party_vectors=self.party_vectors_reduced)
 
-        # calculate topic sizes
-        self.topic_sizes_reduced = self._calculate_topic_sizes(hierarchy=True)
+        # calculate party sizes
+        self.party_sizes_reduced = self._calculate_party_sizes(hierarchy=True)
 
-        # re-order topics
-        self._reorder_topics(hierarchy=True)
+        # re-order parties
+        self._reorder_parties(hierarchy=True)
 
         return self.hierarchy
 
@@ -2019,12 +2021,12 @@ class Politician2Vec:
         return self.search_documents_by_vector(query_vec, num_docs, return_documents=return_documents,
                                                use_index=use_index, ef=ef)
 
-    def query_topics(self, query, num_topics, reduced=False, tokenizer=None):
+    def query_parties(self, query, num_parties, reduced=False, tokenizer=None):
         """
-        Semantic search of topics using text query.
+        Semantic search of parties using text query.
 
-        These are the topics closest to the vector. Topics are ordered by
-        proximity to the vector. Successive topics in the list are less
+        These are the parties closest to the vector. parties are ordered by
+        proximity to the vector. Successive parties in the list are less
         semantically similar to the vector.
 
         Parameters
@@ -2033,12 +2035,12 @@ class Politician2Vec:
             Any sequence of text. This could be an actual question, a sentence,
             a paragraph or a document.
 
-        num_topics: int
+        num_parties: int
             Number of documents to return.
 
         reduced: bool (Optional, default False)
-            Original topics are searched by default. If True the
-            reduced topics will be searched.
+            Original parties are searched by default. If True the
+            reduced parties will be searched.
 
         tokenizer: callable (Optional, default None)
 
@@ -2049,30 +2051,30 @@ class Politician2Vec:
 
         Returns
         -------
-        topics_words: array of shape (num_topics, 50)
-            For each topic the top 50 words are returned, in order of semantic
-            similarity to topic.
+        parties_words: array of shape (num_parties, 50)
+            For each party the party 50 words are returned, in order of semantic
+            similarity to party.
 
             Example:
-            [['data', 'deep', 'learning' ... 'artificial'],           <Topic 0>
-            ['environment', 'warming', 'climate ... 'temperature']    <Topic 1>
+            [['data', 'deep', 'learning' ... 'artificial'],           <party 0>
+            ['environment', 'warming', 'climate ... 'temperature']    <party 1>
             ...]
 
-        word_scores: array of shape (num_topics, 50)
-            For each topic the cosine similarity scores of the top 50 words
-            to the topic are returned.
+        word_scores: array of shape (num_parties, 50)
+            For each party the cosine similarity scores of the party 50 words
+            to the party are returned.
 
             Example:
-            [[0.7132, 0.6473, 0.5700 ... 0.3455],     <Topic 0>
-            [0.7818', 0.7671, 0.7603 ... 0.6769]     <Topic 1>
+            [[0.7132, 0.6473, 0.5700 ... 0.3455],     <party 0>
+            [0.7818', 0.7671, 0.7603 ... 0.6769]     <party 1>
             ...]
 
-        topic_scores: array of float, shape(num_topics)
-            For each topic the cosine similarity to the search keywords will be
+        party_scores: array of float, shape(num_parties)
+            For each party the cosine similarity to the search keywords will be
             returned.
 
-        topic_nums: array of int, shape(num_topics)
-            The unique number of every topic will be returned.
+        party_nums: array of int, shape(num_parties)
+            The unique number of every party will be returned.
         """
 
         self._validate_query(query)
@@ -2093,7 +2095,7 @@ class Politician2Vec:
                                                 min_alpha=0.01,
                                                 epochs=100)
 
-        return self.search_topics_by_vector(query_vec, num_topics=num_topics, reduced=reduced)
+        return self.search_parties_by_vector(query_vec, num_parties=num_parties, reduced=reduced)
 
     def search_documents_by_vector(self, vector, num_docs, return_documents=True, use_index=False, ef=None):
         """
@@ -2107,7 +2109,7 @@ class Politician2Vec:
         ----------
         vector: array of shape(vector dimension, 1)
             The vector dimension should be the same as the vectors in
-            the topic_vectors variable. (i.e. model.topic_vectors.shape[1])
+            the party_vectors variable. (i.e. model.party_vectors.shape[1])
 
         num_docs: int
             Number of documents to return.
@@ -2185,7 +2187,7 @@ class Politician2Vec:
         ----------
         vector: array of shape(vector dimension, 1)
             The vector dimension should be the same as the vectors in
-            the topic_vectors variable. (i.e. model.topic_vectors.shape[1])
+            the party_vectors variable. (i.e. model.party_vectors.shape[1])
 
         num_words: int
             Number of words to return.
@@ -2236,88 +2238,88 @@ class Politician2Vec:
 
         return words, word_scores
 
-    def search_topics_by_vector(self, vector, num_topics, reduced=False):
+    def search_parties_by_vector(self, vector, num_parties, reduced=False):
         """
-        Semantic search of topics using keywords.
+        Semantic search of parties using keywords.
 
-        These are the topics closest to the vector. Topics are ordered by
-        proximity to the vector. Successive topics in the list are less
+        These are the parties closest to the vector. parties are ordered by
+        proximity to the vector. Successive parties in the list are less
         semantically similar to the vector.
 
         Parameters
         ----------
         vector: array of shape(vector dimension, 1)
             The vector dimension should be the same as the vectors in
-            the topic_vectors variable. (i.e. model.topic_vectors.shape[1])
+            the party_vectors variable. (i.e. model.party_vectors.shape[1])
 
-        num_topics: int
+        num_parties: int
             Number of documents to return.
 
         reduced: bool (Optional, default False)
-            Original topics are searched by default. If True the
-            reduced topics will be searched.
+            Original parties are searched by default. If True the
+            reduced parties will be searched.
 
         Returns
         -------
-        topics_words: array of shape (num_topics, 50)
-            For each topic the top 50 words are returned, in order of semantic
-            similarity to topic.
+        parties_words: array of shape (num_parties, 50)
+            For each party the party 50 words are returned, in order of semantic
+            similarity to party.
 
             Example:
-            [['data', 'deep', 'learning' ... 'artificial'],           <Topic 0>
-            ['environment', 'warming', 'climate ... 'temperature']    <Topic 1>
+            [['data', 'deep', 'learning' ... 'artificial'],           <party 0>
+            ['environment', 'warming', 'climate ... 'temperature']    <party 1>
             ...]
 
-        word_scores: array of shape (num_topics, 50)
-            For each topic the cosine similarity scores of the top 50 words
-            to the topic are returned.
+        word_scores: array of shape (num_parties, 50)
+            For each party the cosine similarity scores of the party 50 words
+            to the party are returned.
 
             Example:
-            [[0.7132, 0.6473, 0.5700 ... 0.3455],     <Topic 0>
-            [0.7818', 0.7671, 0.7603 ... 0.6769]     <Topic 1>
+            [[0.7132, 0.6473, 0.5700 ... 0.3455],     <party 0>
+            [0.7818', 0.7671, 0.7603 ... 0.6769]     <party 1>
             ...]
 
-        topic_scores: array of float, shape(num_topics)
-            For each topic the cosine similarity to the search keywords will be
+        party_scores: array of float, shape(num_parties)
+            For each party the cosine similarity to the search keywords will be
             returned.
 
-        topic_nums: array of int, shape(num_topics)
-            The unique number of every topic will be returned.
+        party_nums: array of int, shape(num_parties)
+            The unique number of every party will be returned.
         """
 
         self._validate_vector(vector)
-        self._validate_num_topics(num_topics, reduced)
+        self._validate_num_parties(num_parties, reduced)
 
         vector = self._l2_normalize(vector)
 
         if reduced:
             self._validate_hierarchical_reduction()
 
-            topic_nums, topic_scores = self._search_vectors_by_vector(self.topic_vectors_reduced,
-                                                                      vector, num_topics)
-            topic_words = [self.topic_words_reduced[topic] for topic in topic_nums]
-            word_scores = [self.topic_word_scores_reduced[topic] for topic in topic_nums]
+            party_nums, party_scores = self._search_vectors_by_vector(self.party_vectors_reduced,
+                                                                      vector, num_parties)
+            party_words = [self.party_words_reduced[party] for party in party_nums]
+            word_scores = [self.party_word_scores_reduced[party] for party in party_nums]
 
         else:
-            topic_nums, topic_scores = self._search_vectors_by_vector(self.topic_vectors,
-                                                                      vector, num_topics)
-            topic_words = [self.topic_words[topic] for topic in topic_nums]
-            word_scores = [self.topic_word_scores[topic] for topic in topic_nums]
+            party_nums, party_scores = self._search_vectors_by_vector(self.party_vectors,
+                                                                      vector, num_parties)
+            party_words = [self.party_words[party] for party in party_nums]
+            word_scores = [self.party_word_scores[party] for party in party_nums]
 
-        return topic_words, word_scores, topic_scores, topic_nums
+        return party_words, word_scores, party_scores, party_nums
 
-    def search_documents_by_topic(self, topic_num, num_docs, return_documents=True, reduced=False):
+    def search_documents_by_party(self, party_num, num_docs, return_documents=True, reduced=False):
         """
-        Get the most semantically similar documents to the topic.
+        Get the most semantically similar documents to the party.
 
-        These are the documents closest to the topic vector. Documents are
-        ordered by proximity to the topic vector. Successive documents in the
-        list are less semantically similar to the topic.
+        These are the documents closest to the party vector. Documents are
+        ordered by proximity to the party vector. Successive documents in the
+        list are less semantically similar to the party.
 
         Parameters
         ----------
-        topic_num: int
-            The topic number to search.
+        party_num: int
+            The party number to search.
 
         num_docs: int
             Number of documents to return.
@@ -2327,8 +2329,8 @@ class Politician2Vec:
             saved in the model they will not be returned.
 
         reduced: bool (Optional, default False)
-            Original topics are used to search by default. If True the
-            reduced topics will be used.
+            Original parties are used to search by default. If True the
+            reduced parties will be used.
 
         Returns
         -------
@@ -2339,8 +2341,8 @@ class Politician2Vec:
             return_documents is set to True.
 
         doc_scores: array of float, shape(num_docs)
-            Semantic similarity of document to topic. The cosine similarity of
-            the document and topic vector.
+            Semantic similarity of document to party. The cosine similarity of
+            the document and party vector.
 
         doc_ids: array of int, shape(num_docs)
             Unique ids of documents. If ids were not given to the model, the
@@ -2349,23 +2351,23 @@ class Politician2Vec:
 
         if reduced:
             self._validate_hierarchical_reduction()
-            self._validate_topic_num(topic_num, reduced)
-            self._validate_topic_search(topic_num, num_docs, reduced)
+            self._validate_party_num(party_num, reduced)
+            self._validate_party_search(party_num, num_docs, reduced)
 
-            topic_document_indexes = np.where(self.doc_top_reduced == topic_num)[0]
-            topic_document_indexes_ordered = np.flip(np.argsort(self.doc_dist_reduced[topic_document_indexes]))
-            doc_indexes = topic_document_indexes[topic_document_indexes_ordered][0:num_docs]
+            party_document_indexes = np.where(self.doc_party_reduced == party_num)[0]
+            party_document_indexes_ordered = np.flip(np.argsort(self.doc_dist_reduced[party_document_indexes]))
+            doc_indexes = party_document_indexes[party_document_indexes_ordered][0:num_docs]
             doc_scores = self.doc_dist_reduced[doc_indexes]
             doc_ids = self._get_document_ids(doc_indexes)
 
         else:
 
-            self._validate_topic_num(topic_num, reduced)
-            self._validate_topic_search(topic_num, num_docs, reduced)
+            self._validate_party_num(party_num, reduced)
+            self._validate_party_search(party_num, num_docs, reduced)
 
-            topic_document_indexes = np.where(self.doc_top == topic_num)[0]
-            topic_document_indexes_ordered = np.flip(np.argsort(self.doc_dist[topic_document_indexes]))
-            doc_indexes = topic_document_indexes[topic_document_indexes_ordered][0:num_docs]
+            party_document_indexes = np.where(self.doc_party == party_num)[0]
+            party_document_indexes_ordered = np.flip(np.argsort(self.doc_dist[party_document_indexes]))
+            doc_indexes = party_document_indexes[party_document_indexes_ordered][0:num_docs]
             doc_scores = self.doc_dist[doc_indexes]
             doc_ids = self._get_document_ids(doc_indexes)
 
@@ -2450,7 +2452,7 @@ class Politician2Vec:
         if self.embedding_model == 'doc2vec':
             sim_docs = self.model.docvecs.most_similar(positive=word_vecs,
                                                        negative=neg_word_vecs,
-                                                       topn=num_docs)
+                                                       partyn=num_docs)
             doc_indexes = [doc[0] for doc in sim_docs]
             doc_scores = np.array([doc[1] for doc in sim_docs])
         else:
@@ -2534,17 +2536,17 @@ class Politician2Vec:
 
         return words, word_scores
 
-    def search_topics(self, keywords, num_topics, keywords_neg=None, reduced=False):
+    def search_parties(self, keywords, num_parties, keywords_neg=None, reduced=False):
         """
-        Semantic search of topics using keywords.
+        Semantic search of parties using keywords.
 
-        The most semantically similar topics to the combination of the keywords
-        will be returned. If negative keywords are provided, the topics will be
-        semantically dissimilar to those words. Topics will be ordered by
+        The most semantically similar parties to the combination of the keywords
+        will be returned. If negative keywords are provided, the parties will be
+        semantically dissimilar to those words. parties will be ordered by
         decreasing similarity to the keywords. Too many keywords or certain
         combinations of words may give strange results. This method finds an
         average vector(negative keywords are subtracted) of all the keyword
-        vectors and returns the topics closest to the resulting vector.
+        vectors and returns the parties closest to the resulting vector.
 
         Parameters
         ----------
@@ -2556,39 +2558,39 @@ class Politician2Vec:
             List of negative keywords being used for search of semantically
             dissimilar documents.
 
-        num_topics: int
+        num_parties: int
             Number of documents to return.
 
         reduced: bool (Optional, default False)
-            Original topics are searched by default. If True the
-            reduced topics will be searched.
+            Original parties are searched by default. If True the
+            reduced parties will be searched.
 
         Returns
         -------
-        topics_words: array of shape (num_topics, 50)
-            For each topic the top 50 words are returned, in order of semantic
-            similarity to topic.
+        parties_words: array of shape (num_parties, 50)
+            For each party the party 50 words are returned, in order of semantic
+            similarity to party.
 
             Example:
-            [['data', 'deep', 'learning' ... 'artificial'],           <Topic 0>
-            ['environment', 'warming', 'climate ... 'temperature']    <Topic 1>
+            [['data', 'deep', 'learning' ... 'artificial'],           <party 0>
+            ['environment', 'warming', 'climate ... 'temperature']    <party 1>
             ...]
 
-        word_scores: array of shape (num_topics, 50)
-            For each topic the cosine similarity scores of the top 50 words
-            to the topic are returned.
+        word_scores: array of shape (num_parties, 50)
+            For each party the cosine similarity scores of the party 50 words
+            to the party are returned.
 
             Example:
-            [[0.7132, 0.6473, 0.5700 ... 0.3455],     <Topic 0>
-            [0.7818', 0.7671, 0.7603 ... 0.6769]     <Topic 1>
+            [[0.7132, 0.6473, 0.5700 ... 0.3455],     <party 0>
+            [0.7818', 0.7671, 0.7603 ... 0.6769]     <party 1>
             ...]
 
-        topic_scores: array of float, shape(num_topics)
-            For each topic the cosine similarity to the search keywords will be
+        party_scores: array of float, shape(num_parties)
+            For each party the cosine similarity to the search keywords will be
             returned.
 
-        topic_nums: array of int, shape(num_topics)
-            The unique number of every topic will be returned.
+        party_nums: array of int, shape(num_parties)
+            The unique number of every party will be returned.
         """
         if keywords_neg is None:
             keywords_neg = []
@@ -2598,7 +2600,7 @@ class Politician2Vec:
         neg_word_vecs = self._words2word_vectors(keywords_neg)
         combined_vector = self._get_combined_vec(word_vecs, neg_word_vecs)
 
-        return self.search_topics_by_vector(combined_vector, num_topics=num_topics, reduced=reduced)
+        return self.search_parties_by_vector(combined_vector, num_parties=num_parties, reduced=reduced)
 
     def search_documents_by_documents(self, doc_ids, num_docs, doc_ids_neg=None, return_documents=True,
                                       use_index=False, ef=None):
@@ -2677,7 +2679,7 @@ class Politician2Vec:
         if self.embedding_model == 'doc2vec':
             sim_docs = self.model.docvecs.most_similar(positive=doc_indexes,
                                                        negative=doc_indexes_neg,
-                                                       topn=num_docs)
+                                                       partyn=num_docs)
             doc_indexes = [doc[0] for doc in sim_docs]
             doc_scores = np.array([doc[1] for doc in sim_docs])
         else:
@@ -2705,19 +2707,19 @@ class Politician2Vec:
         else:
             return doc_scores, doc_ids
 
-    def generate_topic_wordcloud(self, topic_num, background_color="black", reduced=False):
+    def generate_party_wordcloud(self, party_num, background_color="black", reduced=False):
         """
-        Create a word cloud for a topic.
+        Create a word cloud for a party.
 
         A word cloud will be generated and displayed. The most semantically
-        similar words to the topic will have the largest size, less similar
+        similar words to the party will have the largest size, less similar
         words will be smaller. The size is determined using the cosine distance
-        of the word vectors from the topic vector.
+        of the word vectors from the party vector.
 
         Parameters
         ----------
-        topic_num: int
-            The topic number to search.
+        party_num: int
+            The party number to search.
 
         background_color : str (Optional, default='white')
             Background color for the word cloud image. Suggested options are:
@@ -2725,25 +2727,25 @@ class Politician2Vec:
                 * black
 
         reduced: bool (Optional, default False)
-            Original topics are used by default. If True the
-            reduced topics will be used.
+            Original parties are used by default. If True the
+            reduced parties will be used.
 
         Returns
         -------
-        A matplotlib plot of the word cloud with the topic number will be
+        A matplotlib plot of the word cloud with the party number will be
         displayed.
 
         """
 
         if reduced:
             self._validate_hierarchical_reduction()
-            self._validate_topic_num(topic_num, reduced)
-            word_score_dict = dict(zip(self.topic_words_reduced[topic_num],
-                                       softmax(self.topic_word_scores_reduced[topic_num])))
+            self._validate_party_num(party_num, reduced)
+            word_score_dict = dict(zip(self.party_words_reduced[party_num],
+                                       softmax(self.party_word_scores_reduced[party_num])))
         else:
-            self._validate_topic_num(topic_num, reduced)
-            word_score_dict = dict(zip(self.topic_words[topic_num],
-                                       softmax(self.topic_word_scores[topic_num])))
+            self._validate_party_num(party_num, reduced)
+            word_score_dict = dict(zip(self.party_words[party_num],
+                                       softmax(self.party_word_scores[party_num])))
 
         plt.figure(figsize=(16, 4),
                    dpi=200)
@@ -2752,49 +2754,49 @@ class Politician2Vec:
             WordCloud(width=1600,
                       height=400,
                       background_color=background_color).generate_from_frequencies(word_score_dict))
-        plt.title("Topic " + str(topic_num), loc='left', fontsize=25, pad=20)
+        plt.title("party " + str(party_num), loc='left', fontsize=25, pad=20)
 
-    def inspect_topic(self, topic_idx, n_docs=None, query_substr=None):
+    def inspect_party(self, party_idx, n_docs=None, query_substr=None):
         '''
-        Print top words and top docs for a given
-        topic.
+        Print party words and party docs for a given
+        party.
         -------
-        manual_num (int):  manually assigned topic number (i.e. 1-indexed).
+        manual_num (int):  manually assigned party number (i.e. 1-indexed).
         
-        n_docs (int, optional): n top documents to print for a given topic.
-            Default is to print all docs within a given topic.
+        n_docs (int, optional): n party documents to print for a given party.
+            Default is to print all docs within a given party.
         
         query_substr (str, optional): if specified, only documents containing
             this substring will be printed. Cannot be specified with n_docs,
-            as this would return only results within a subset of topic docs.
+            as this would return only results within a subset of party docs.
         '''
 
-        num_topics = self.get_num_topics()
-        topic_words, word_scores, topic_nums = self.get_topics(num_topics)
+        num_parties = self.get_num_parties()
+        party_words, word_scores, party_nums = self.get_parties(num_parties)
 
-        # Get topic sizes so we know max n docs
-        topic_sizes, topic_nums = self.get_topic_sizes()
-        docs_to_return = topic_sizes[topic_idx]
+        # Get party sizes so we know max n docs
+        party_sizes, party_nums = self.get_party_sizes()
+        docs_to_return = party_sizes[party_idx]
 
         # Override n docs to return, if specified
         if n_docs:
             docs_to_return = n_docs
 
-        # Get docs for input topic id
-        documents, document_scores, document_ids = self.search_documents_by_topic(
-            topic_num=topic_idx,
+        # Get docs for input party id
+        documents, document_scores, document_ids = self.search_documents_by_party(
+            party_num=party_idx,
             num_docs=docs_to_return
             )
 
         # Limit output to docs containign certain substring, if specified
         if query_substr and n_docs:
-            raise Exception('Please do NOT specify n_docs with substring query!\nOtherwise the search is only carried out for a subset of topic docs.')
+            raise Exception('Please do NOT specify n_docs with substring query!\nOtherwise the search is only carried out for a subset of party docs.')
         
         # Throw exception if substring query attempted on subset of docs!
         elif query_substr:
             documents = [doc for doc in documents if query_substr in doc.lower()]
 
         # Print output
-        print('--- TOP 50 WORDS ---\n', topic_words[topic_idx], '\n')
+        print('--- party 50 WORDS ---\n', party_words[party_idx], '\n')
 
-        print(f'--- TOP {docs_to_return} DOCS. SUBSTRING QUERY: {query_substr} (n = {len(documents)}) ---\n', documents)
+        print(f'--- party {docs_to_return} DOCS. SUBSTRING QUERY: {query_substr} (n = {len(documents)}) ---\n', documents)
