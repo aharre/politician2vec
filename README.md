@@ -2,14 +2,15 @@
 
 **Notes:**
 - PACKAGE UNDER CONSTRUCTION!
+- Functionality developed as part of the course *Data Collection, Processing & Analysis* at [SODAS, UCPH](https://sodas.ku.dk/).
 
 # politician2vec
 
 Welcome to the `politician2vec` package. Based on massive political text corpora, this package allows for learning, manipulating, and visualising embeddings of words, documents, and politicians in the same high-dimensional semantic space, while simultaneously inferring party positions.
 
-Core functionality relies heavily on the `gensim` implementation of Le & Mikolov's `doc2vec`, and the package is adapted from Dimo Angelov's `top2vec` for unsupervised infererence of topics (analogous to parties here) in semantic space.
+The package is adapted from Dimo Angelov's `top2vec` for unsupervised infererence of topics in semantic space (analogous to political parties *in casu*), and its core functionality relies on the `gensim` implementation of Le & Mikolov's `doc2vec`.
 
-Interactive 2D/3D projections are made possible by exporting vectors and relevant metadata as separate 2D tensors to TensorBoard-compatible .TSV format (notebook-compatible visualisation utilities to be added, please refer to [this](https://github.com/mathiasbruun/DCPA) demo repo in the meantime).
+Interactive 2D/3D projections are possible, e.g. by exporting vectors and relevant metadata as separate 2D tensors to TensorBoard-compatible .TSV format (notebook-compatible visualisation utilities to be added, please refer to [this](https://github.com/mathiasbruun/DCPA) demo repo in the meantime).
 
 ## Package structure
 
@@ -31,8 +32,7 @@ politician2vec
 │       │   tb_metadata_tensor.tsv
 │       │   tb_state.txt
 │   
-└───tests
-│   │   politician2vec_test.ipynb   # Contains unit tests for politician2vec functions
+politician2vec functions
 │
 └───politician2vec                  # Contains politican2vec functionality
 │   │   Politician2Vec.py
@@ -70,22 +70,17 @@ Install politician2vec via command line:
 
 ```python
 from politician2vec import Politician2Vec
+from politician2vec.utils import * # please refer to the utils module for further elaboration
 ```
 
 ## Demos
 
-Notebooks demonstrating common usecases and workflows to be added in `bin/notebooks/`.
+Notebooks demonstrating use cases and workflows to be added in `bin/notebooks/`.
 
 Click <a href="https://projector.tensorflow.org/?config=https://bitbucket.org/advice-data-and-insights/tensorboard_input/raw/3a8dfc3fc19ef83d03832e89b207413ad918a1a3/projector_config.json" target="_blank">here</a> for TensorBoard visualisation example (works best in Google Chrome). When the embedding has loaded, check 'State 0' to load a pre-computed t-SNE projection—or switch to UMAP for a clearer distinction between politicians.
-
-## Support
-
-Please report any errors or suggestions to Mathias Bruun at [pvf607@alumni.ku.dk](mailto:pvf607@alumni.ku.dk).
 
 ## Foundational literature
 
 - Angelov, D. (2020). *Top2Vec: Distributed Representations of Topics*. arXiv: [2008.09470](https://arxiv.org/abs/2008.09470).
-- Bruun, M., A. Weile, A. Saabye & T. Blažková (n.d.). *'Splits' over splitting atoms in the EU*. Working paper.
-- Carlsen, H. B. & S. Ralund (2022). Computational grounded theory revisited: From computer-led to computer-assisted text analysis. In: *Big Data & Society* 9.1 DOI: [10.1177/20539517221080146](http://journals.sagepub.com/doi/10.1177/20539517221080146).
-- Le, Q. V. & T. Mikolov (2014). *Distributed Representations of Sentences and Documents*. arXiv: [1405.4053](https://arxiv.org/abs/1405.4053).
+- Le, Q. V., & T. Mikolov (2014). *Distributed Representations of Sentences and Documents*. arXiv: [1405.4053](https://doi.org/10.48550/arXiv.1405.4053).
 - Mikolov, T., K. Chen, G. Corrado & J. Dean (2013). *Efficient Estimation of Word Representations in Vector Space*. arXiv: [1301.3781](https://arxiv.org/abs/1301.3781).
