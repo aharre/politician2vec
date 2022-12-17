@@ -1,13 +1,15 @@
 ![](https://img.shields.io/badge/version-0.0.1-yellow.svg)
 
 **Notes:**
-- Package under construction!
+- PACKAGE UNDER CONSTRUCTION!
 
 # politician2vec
 
-Welcome to the `politician2vec` package. This package allows for distilling massive, unstructured text corpora into political insights. Specifically, utilities are provided for learning, manipulating, and visualising domain-specific "distributed-representation" language models with words, documents, and politicians embedded in the same high-dimensional semantic space.
+Welcome to the `politician2vec` package. Based on massive political text corpora, this package allows for learning, manipulating, and visualising embeddings of words, documents, and politicians in the same high-dimensional semantic space, while simultaneously inferring party positions.
 
-Functionality relies heavily on the `gensim` implementation of Tomáš Mikolov and colleagues' `doc2vec` and owes much of its core functionality to Dimo Angelov's `top2vec` for unsupervised infererence of topics in semantic spaces. Interactive 2D/3D projections are made possible by exporting vectors and relevant metadata as separate 2D tensors to TensorBoard-compatible .TSV format.
+Core functionality relies heavily on the `gensim` implementation of Le & Mikolov's `doc2vec`, and the package is adapted from Dimo Angelov's `top2vec` for unsupervised infererence of topics (analogous to parties here) in semantic space.
+
+Interactive 2D/3D projections are made possible by exporting vectors and relevant metadata as separate 2D tensors to TensorBoard-compatible .TSV format (notebook-compatible visualisation utilities to be added, please refer to [this](https://github.com/mathiasbruun/DCPA) demo repo in the meantime).
 
 ## Package structure
 
@@ -41,15 +43,22 @@ politician2vec
 
 ## Requirements
 
-The current version of politician2vec was developed in Python 3.7.12. Analysis is performed in Jupyter, and demos will be provided as notebooks. For installing Jupyter/JupyterLab, visit [Project Jupyter](https://jupyter.org/). Currently known Python dependencies:
+The current version of `politician2vec` was developed in Python 3.8.9. Demos will be provided as notebooks–for now, please refer to [this](https://github.com/mathiasbruun/DCPA) repo.
 
-- `word2vec` == 0.11.1
-- `top2vec` == 1.0.27
-- `transformers` == 4.21.0
-- `numpy` == 1.20.3
-- `numba` == 0.53.0
+Currently known package-specific Python dependencies:
 
-Apart from these Python dependencies, `git` is required for Bitbucket integration/version control, and `pip` is required for installation/package management.
+- `numpy` >= 1.20.0
+- `pandas`
+- `gensim` >= 4.0.0
+- `umap-learn` >= 0.5.1
+- `hdbscan` >= 0.8.27
+- `wordcloud`
+- `tensorflow`
+- `tensorflow_hub`
+- `tensorflow_text`
+- `torch`
+- `sentence_transformers`
+- `hnswlib`
 
 ## Installation
 
