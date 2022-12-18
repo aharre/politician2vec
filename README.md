@@ -26,7 +26,7 @@ politician2vec
 └───bin
 │   │   demo_notebook.ipynb
 │   │
-│   └───tensorboard                 # Contains example of TensorBoard visualisation
+│   └───tensorboard                 # Contains example of interactive TensorBoard visualisation
 │       │   tb_config.json
 │       │   tb_doc_tensor.tsv
 │       │   tb_metadata_tensor.tsv
@@ -36,9 +36,7 @@ politician2vec functions
 │
 └───politician2vec                  # Contains politican2vec functionality
 │   │   Politician2Vec.py
-│   │
-│   └───utils
-│       │   xxx.py
+│   │   utils.py
 ```
 
 ## Requirements
