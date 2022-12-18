@@ -2,7 +2,7 @@
 
 **Notes:**
 - PACKAGE UNDER CONSTRUCTION!
-- Functionality developed as part of the course *Data Collection, Processing & Analysis* at [SODAS, UCPH](https://sodas.ku.dk/).
+- Functionality developed as part of the course *Data Collection, Processing & Analysis* @ [SODAS, UCPH](https://sodas.ku.dk/).
 
 # politician2vec
 
@@ -64,7 +64,7 @@ Currently known package-specific Python dependencies:
 
 Install politician2vec via command line:
 
-`$ pip install git+ssh://git@github.com/mathiasbruun/politician2vec.git`
+`$ pip install git+https://git@github.com/mathiasbruun/politician2vec.git`
 
 ## Example import
 
@@ -77,7 +77,7 @@ from politician2vec.utils import * # please refer to the utils module for furthe
 
 Notebooks demonstrating use cases and workflows to be added in `bin/notebooks/`.
 
-Click <a href="https://projector.tensorflow.org/?config=https://bitbucket.org/advice-data-and-insights/tensorboard_input/raw/3a8dfc3fc19ef83d03832e89b207413ad918a1a3/projector_config.json" target="_blank">here</a> for TensorBoard visualisation example (works best in Google Chrome). When the embedding has loaded, check 'State 0' to load a pre-computed t-SNE projection—or switch to UMAP for a clearer distinction between politicians.
+TensorBoard demo visualisations also coming soon.
 
 ## Foundational literature
 
