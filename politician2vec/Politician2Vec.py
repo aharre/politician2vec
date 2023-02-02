@@ -1,4 +1,4 @@
-# Original author of party2Vec: Dimo Angelov
+# Original author of Top2Vec: Dimo Angelov
 # License: BSD 3 clause
 #
 # Slightly modified for politician embeddings and party inference by Mathias Bruun
