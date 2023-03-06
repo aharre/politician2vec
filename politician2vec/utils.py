@@ -63,13 +63,13 @@ def preproc_docs(text):
     tokens = tokenizer.tokenize(text)
 
     #Removing stopwords
-    sparty_words_list = nltk.corpus.stopwords.words('danish')
-    tokens = [i for i in tokens if i not in sparty_words_list]
+    stop_words_list = nltk.corpus.stopwords.words('danish')
+    tokens = [i for i in tokens if i not in stop_words_list]
     
     # Removing query-specific words
-    sparty_words_list = []
-    #sparty_words_list.extend(['mink'])
-    tokens = [i for i in tokens if i not in sparty_words_list]
+    stop_words_list = []
+    #stop_words_list.extend(['mink'])
+    tokens = [i for i in tokens if i not in stop_words_list]
 
     return tokens
 
