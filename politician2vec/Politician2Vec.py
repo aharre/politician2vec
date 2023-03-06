@@ -998,12 +998,12 @@ class Politician2Vec:
         party_word_scores = []
 
         res = np.inner(party_vectors, self.word_vectors)
-        party_words = np.flip(np.argsort(res, axis=1), axis=1)
-        party_scores = np.flip(np.sort(res, axis=1), axis=1)
+        pt_words = np.flip(np.argsort(res, axis=1), axis=1)
+        pt_scores = np.flip(np.sort(res, axis=1), axis=1)
 
         for words, scores in zip(pt_words, pt_scores):
-            pt_words.append([self.vocab[i] for i in words[0:50]])
-            pt_word_scores.append(scores[0:50])
+            party_words.append([self.vocab[i] for i in words[0:50]])
+            party_word_scores.append(scores[0:50])
 
         party_words = np.array(party_words)
         party_word_scores = np.array(party_word_scores)
