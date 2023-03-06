@@ -12,6 +12,22 @@ import nltk
 for dependency in ['punkt', 'wordnet', 'omw-1.4', 'stopwords', 'averaged_perceptron_tagger']:
     nltk.download(dependency)
 
+def tokenize_docs(text):
+
+    tokenizer = nltk.TweetTokenizer() 
+    tokens = tokenizer.tokenize(text)
+
+    #Removing stopwords
+    stop_words_list = nltk.corpus.stopwords.words('danish')
+    tokens = [i for i in tokens if i not in stop_words_list]
+
+    # Removing other (query-specific) words
+    #stop_words_list = []
+    #stop_words_list.extend([])
+    #tokens = [i for i in tokens if i not in stop_words_list]
+
+    return tokens
+
 def preproc_docs(text):
     #Lowercasing words
     text = text.lower()
@@ -58,18 +74,7 @@ def preproc_docs(text):
     text = text.strip()
     text = re.sub(r' +',' ',text)
 
-    #Tokenizing
-    tokenizer = nltk.TweetTokenizer() 
-    tokens = tokenizer.tokenize(text)
-
-    #Removing stopwords
-    stop_words_list = nltk.corpus.stopwords.words('danish')
-    tokens = [i for i in tokens if i not in stop_words_list]
-    
-    # Removing query-specific words
-    stop_words_list = []
-    #stop_words_list.extend(['mink'])
-    tokens = [i for i in tokens if i not in stop_words_list]
+    tokens = tokenize_docs(text)
 
     return tokens
 
