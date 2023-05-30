@@ -2,11 +2,11 @@
 
 **Notes:**
 - PACKAGE UNDER CONSTRUCTION!
-- Functionality developed as part of the course *Data Collection, Processing & Analysis* @ [SODAS, UCPH](https://sodas.ku.dk/).
+- Functionality developed as part of the course *Data Collection, Processing & Analysis* and for my master's thesis @ [SODAS, UCPH](https://sodas.ku.dk/).
 
 # politician2vec
 
-Welcome to the `politician2vec` package. Based on massive political text corpora, this package allows for learning, manipulating, and visualising embeddings of words, documents, and politicians in the same high-dimensional semantic space, while simultaneously inferring party positions.
+Welcome to the `politician2vec` package. Based on massive political text corpora, this package allows for learning, manipulating, and visualising embeddings of words, documents, and politicians in the same high-dimensional semantic space, while simultaneously inferring party positions. Experimental funcitonality allows for measuring latent political concepts by identifying subspaces of the embedding and projecting actors onto these.
 
 The package is adapted from Dimo Angelov's `top2vec` for unsupervised infererence of topics in semantic space (analogous to political parties *in casu*), and its core functionality relies on the `gensim` implementation of Le & Mikolov's `doc2vec`.
 
@@ -41,7 +41,7 @@ politician2vec functions
 
 ## Requirements
 
-The current version of `politician2vec` was developed in Python 3.8.9. Demos will be provided as notebooks–for now, please refer to [this](https://github.com/mathiasbruun/DCPA) repo.
+The current version of `politician2vec` was developed in Python 3.8.9. Demos will be provided as notebooks–for now, please refer to [this](https://github.com/mathiasbruun/DCPA) repo for examples of actor positions across various data sourcesn and to [this](https://github.com/mathiasbruun/GeneralisedPoliticalScaling) repo for scaling of political actors by projection to theoretically defined subspaces..
 
 Currently known package-specific Python dependencies:
 
