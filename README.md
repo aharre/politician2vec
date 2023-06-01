@@ -8,6 +8,8 @@
 
 Welcome to the `politician2vec` package. Based on massive political text corpora, this package allows for learning, manipulating, and visualising embeddings of words, documents, and politicians in the same high-dimensional semantic space, while simultaneously inferring party positions. Experimental funcitonality allows for measuring latent political concepts by identifying subspaces of the embedding and projecting actors onto these.
 
+Some demos will be provided as notebooks–for now, please refer to [this](https://github.com/mathiasbruun/DCPA) repo for examples of obtaining actor positions across various data sources (Danish Parliament, Twitter, Meta), and to [this](https://github.com/mathiasbruun/GeneralisedPoliticalScaling) repo for generalised scaling of political actors by projecting them onto theory-derived and semantic subspaces.
+
 The package is adapted from Dimo Angelov's `top2vec` for unsupervised infererence of topics in semantic space (analogous to political parties *in casu*), and its core functionality relies on the `gensim` implementation of Le & Mikolov's `doc2vec`.
 
 Interactive 2D/3D projections are possible, e.g. by exporting vectors and relevant metadata as separate 2D tensors to TensorBoard-compatible .TSV format (notebook-compatible visualisation utilities to be added, please refer to [this](https://github.com/mathiasbruun/DCPA) demo repo in the meantime).
@@ -41,7 +43,7 @@ politician2vec functions
 
 ## Requirements
 
-The current version of `politician2vec` was developed in Python 3.8.9. Demos will be provided as notebooks–for now, please refer to [this](https://github.com/mathiasbruun/DCPA) repo for examples of obtaining actor positions across various data sources (Parliament, Twitter, Meta), and to [this](https://github.com/mathiasbruun/GeneralisedPoliticalScaling) repo for scaling of political actors by projecting them onto theoretically defined subspaces.
+The current version of `politician2vec` was developed in Python 3.8.9.
 
 Currently known package-specific Python dependencies:
 
