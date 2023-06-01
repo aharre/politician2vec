@@ -41,7 +41,7 @@ politician2vec functions
 
 ## Requirements
 
-The current version of `politician2vec` was developed in Python 3.8.9. Demos will be provided as notebooks–for now, please refer to [this](https://github.com/mathiasbruun/DCPA) repo for examples of actor positions across various data sourcesn and to [this](https://github.com/mathiasbruun/GeneralisedPoliticalScaling) repo for scaling of political actors by projection to theoretically defined subspaces..
+The current version of `politician2vec` was developed in Python 3.8.9. Demos will be provided as notebooks–for now, please refer to [this](https://github.com/mathiasbruun/DCPA) repo for examples of obtaining actor positions across various data sources (Parliament, Twitter, Meta), and to [this](https://github.com/mathiasbruun/GeneralisedPoliticalScaling) repo for scaling of political actors by projection of actors onto theoretically defined subspaces.
 
 Currently known package-specific Python dependencies:
 
